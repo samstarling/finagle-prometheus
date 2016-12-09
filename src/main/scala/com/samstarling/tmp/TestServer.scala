@@ -13,14 +13,15 @@ import com.twitter.finagle.http.path._
 import com.twitter.util.Future
 import io.prometheus.client.CollectorRegistry
 
-object TestServer extends App {
-  def echo(message: String): Service[Request, Response] = new Service[Request, Response] {
-    def apply(req: Request): Future[Response] = {
-      val rep = Response(req.version, Status.Ok)
-      rep.setContentString(s"$message, and the ID was ${req.params.get("id")}")
-      Future(rep)
-    }
+case class EchoService(message: String) extends Service[Request, Response] {
+  def apply(req: Request): Future[Response] = {
+    val rep = Response(req.version, Status.Ok)
+    rep.setContentString(s"$message, and the ID was ${req.params.get("id")}")
+    Future(rep)
   }
+}
+
+object TestServer extends App {
 
   val registry = CollectorRegistry.defaultRegistry
   val telemetry = new Telemetry(registry, "foo")
@@ -28,10 +29,10 @@ object TestServer extends App {
   val latencyMonitoringFilter = new HttpLatencyMonitoringFilter(telemetry, Seq(5.0, 10.0))
   val metricsService = new MetricsService(registry)
 
-  val routingService = RoutingService.byMethodAndPathObject {
-    case (Method.Get, Root / "hello" / name) => echo(s"Hello ${name}")
+  val routingService: Service[Request, Response] = RoutingService.byMethodAndPathObject {
+    case (Method.Get, Root / "hello" / name) => new EchoService(s"Hello ${name}")
     case (Method.Get, Root / "metrics") => metricsService
-    case _ => echo("Fallback")
+    case _ => new EchoService("Fallback")
   }
 
   val server: Server = ServerBuilder()
