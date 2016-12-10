@@ -57,24 +57,17 @@ class HttpMonitoringFilterSpec extends UnitTest {
         }
       }
 
-      "a path label" in new Context {
-        Await.result(filter.apply(request, service))
-        CollectorHelper.firstSampleFor(counter).map { sample =>
-          sample.labelValues.asScala(1) ==== "/foo/bar"
-        }
-      }
-
       "a status label" in new Context {
         Await.result(filter.apply(request, service))
         CollectorHelper.firstSampleFor(counter).map { sample =>
-          sample.labelValues.asScala(2) ==== "201"
+          sample.labelValues.asScala(1) ==== "201"
         }
       }
 
       "a statusClass label" in new Context {
         Await.result(filter.apply(request, service))
         CollectorHelper.firstSampleFor(counter).map { sample =>
-          sample.labelValues.asScala(3) ==== "2xx"
+          sample.labelValues.asScala(2) ==== "2xx"
         }
       }
     }

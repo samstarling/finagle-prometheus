@@ -10,14 +10,13 @@ class HttpMonitoringFilter(telemetry: Telemetry) extends SimpleFilter[Request, R
   private val counter = telemetry.counter(
     name = "incoming_http_requests_total",
     help = "The number of incoming HTTP requests",
-    labelNames = Seq("method", "path", "status", "statusClass")
+    labelNames = Seq("method", "status", "statusClass")
   )
 
   override def apply(request: Request, service: Service[Request, Response]): Future[Response] = {
     service(request) onSuccess { response =>
       counter.labels(
         request.method.toString,
-        request.path,
         response.status.code.toString,
         StatusClass.forStatus(response.status)
       ).inc()

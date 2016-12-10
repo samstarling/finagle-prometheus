@@ -10,7 +10,7 @@ class HttpLatencyMonitoringFilter(telemetry: Telemetry, buckets: Seq[Double]) ex
   private val histogram = telemetry.histogram(
     name = "incoming_http_request_latency_seconds",
     help = "A histogram of the response latency for HTTP requests",
-    labelNames = Seq("method", "path", "status", "statusClass"),
+    labelNames = Seq("method", "status", "statusClass"),
     buckets = buckets
   )
 
@@ -19,7 +19,6 @@ class HttpLatencyMonitoringFilter(telemetry: Telemetry, buckets: Seq[Double]) ex
     service(request) onSuccess { response =>
       histogram.labels(
         request.method.toString,
-        request.path,
         response.status.code.toString,
         StatusClass.forStatus(response.status)
       ).observe(stopwatch().inMilliseconds / 1000.0)
