@@ -27,7 +27,7 @@ object TestServer extends App {
   val telemetry = new Telemetry(registry, "foo")
   val monitoringFilter = new HttpMonitoringFilter(telemetry)
   val latencyMonitoringFilter = new HttpLatencyMonitoringFilter(telemetry, Seq(5.0, 10.0))
-  val metricsService = new MetricsService(registry)
+  val metricsService = new MetricsService(registry, telemetry)
 
   val routingService: Service[Request, Response] = RoutingService.byMethodAndPathObject {
     case (Method.Get, Root / "hello" / name) => new EchoService(s"Hello ${name}")
