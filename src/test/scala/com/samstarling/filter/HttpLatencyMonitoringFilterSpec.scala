@@ -54,6 +54,30 @@ class HttpLatencyMonitoringFilterSpec extends UnitTest {
         .map(_.map(_.value).sum) ==== Some(1.0)
     }
 
+    "records a method label" in new Context {
+      Await.result(filter.apply(request, slowService))
+
+      registryHelper.samples
+        .get("test_incoming_http_request_latency_seconds_count")
+        .map(_.head.dimensions.get("method").get) ==== Some("GET")
+    }
+
+    "records a status label" in new Context {
+      Await.result(filter.apply(request, slowService))
+
+      registryHelper.samples
+        .get("test_incoming_http_request_latency_seconds_count")
+        .map(_.head.dimensions.get("status").get) ==== Some("200")
+    }
+
+    "records a statusClass label" in new Context {
+      Await.result(filter.apply(request, slowService))
+
+      registryHelper.samples
+        .get("test_incoming_http_request_latency_seconds_count")
+        .map(_.head.dimensions.get("statusClass").get) ==== Some("2xx")
+    }
+
     "categorises requests into the correct bucket" in new Context {
       Await.result(filter.apply(request, slowService))
 
