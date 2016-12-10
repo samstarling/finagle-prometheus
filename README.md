@@ -1,6 +1,6 @@
 # finagle-prometheus
 
-[![Build Status](https://travis-ci.org/samstarling/prometheus-autocomplete.svg?branch=master)](https://travis-ci.org/samstarling/prometheus-autocomplete)
+[![Build Status](https://travis-ci.org/samstarling/finagle-prometheus.svg?branch=master)](https://travis-ci.org/samstarling/finagle-prometheus)
 
 A library that provides a bridge between Finagle and Prometheus. It contains everything you need to get statistics from a Finagle service into Prometheus.
 
