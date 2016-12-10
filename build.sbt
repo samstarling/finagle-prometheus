@@ -17,3 +17,7 @@ libraryDependencies ++= Seq(
   "org.specs2" %% "specs2-core" % "3.8.5" % "test",
   "org.specs2" %% "specs2-mock" % "3.8.5" % "test"
 )
+
+import org.scoverage.coveralls.Imports.CoverallsKeys._
+
+coverallsTokenFile := Some("src/test/resources/coveralls-key.txt")
