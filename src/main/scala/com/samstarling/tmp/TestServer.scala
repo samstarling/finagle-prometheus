@@ -4,12 +4,14 @@ import java.net.InetSocketAddress
 
 import com.samstarling.filter.{HttpLatencyMonitoringFilter, HttpMonitoringFilter}
 import com.samstarling.metrics.Telemetry
-import com.samstarling.service.MetricsService
+import com.samstarling.service.{MetricsService, PrometheusExporter}
+import com.twitter.common.metrics.Metrics
 import com.twitter.finagle.Service
 import com.twitter.finagle.builder.{Server, ServerBuilder}
-import com.twitter.finagle.http.service.RoutingService
 import com.twitter.finagle.http._
 import com.twitter.finagle.http.path._
+import com.twitter.finagle.http.service.RoutingService
+import com.twitter.finagle.stats.JsonExporter
 import com.twitter.util.Future
 import io.prometheus.client.CollectorRegistry
 
@@ -23,15 +25,19 @@ case class EchoService(message: String) extends Service[Request, Response] {
 
 object TestServer extends App {
 
-  val registry = CollectorRegistry.defaultRegistry
+  val registry = new CollectorRegistry(true)
   val telemetry = new Telemetry(registry, "foo")
   val monitoringFilter = new HttpMonitoringFilter(telemetry)
   val latencyMonitoringFilter = new HttpLatencyMonitoringFilter(telemetry, Seq(5.0, 10.0))
   val metricsService = new MetricsService(registry, telemetry)
 
+  val gauge = telemetry.gauge("boaty").set(500.0)
+
   val routingService: Service[Request, Response] = RoutingService.byMethodAndPathObject {
     case (Method.Get, Root / "hello" / name) => new EchoService(s"Hello ${name}")
     case (Method.Get, Root / "metrics") => metricsService
+    case (Method.Get, Root / "newmetrics") => new PrometheusExporter(Metrics.root)
+    case (Method.Get, Root / "fmetrics") => new JsonExporter(Metrics.root)
     case _ => new EchoService("Fallback")
   }
 
@@ -41,3 +47,5 @@ object TestServer extends App {
     .name("HttpServer")
     .build(latencyMonitoringFilter andThen monitoringFilter andThen routingService)
 }
+
+
