@@ -11,12 +11,9 @@ import com.twitter.finagle.http._
 import com.twitter.finagle.http.path._
 import com.twitter.finagle.http.service.RoutingService
 import com.twitter.finagle.stats.JsonExporter
-import com.twitter.util.Future
 import io.prometheus.client.CollectorRegistry
 
 import scala.collection.JavaConverters._
-
-
 
 object TestServer extends App {
 
