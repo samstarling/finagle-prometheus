@@ -4,6 +4,7 @@ import io.prometheus.client._
 
 import scala.collection.concurrent.TrieMap
 
+// TODO: Make namespace optional
 class Telemetry(registry: CollectorRegistry, namespace: String) {
 
   private val counters = TrieMap.empty[String, Counter]

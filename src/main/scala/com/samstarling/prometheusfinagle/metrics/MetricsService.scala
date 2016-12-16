@@ -10,6 +10,7 @@ import io.prometheus.client.exporter.common.TextFormat
 
 import scala.collection.JavaConverters._
 
+// TODO: Is List[T] the most sensible type here? What about Iterator or Enumeration?
 class MetricsService(samples: => List[MetricFamilySamples]) extends Service[Request, Response] {
 
   override def apply(request: Request): Future[Response] = {
