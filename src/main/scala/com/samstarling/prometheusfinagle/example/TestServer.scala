@@ -1,10 +1,9 @@
-package com.samstarling.tmp
+package com.samstarling.prometheusfinagle.example
 
 import java.net.InetSocketAddress
 
-import com.samstarling.filter.{HttpLatencyMonitoringFilter, HttpMonitoringFilter}
-import com.samstarling.metrics.Telemetry
-import com.samstarling.service.{MetricsService, PrometheusExporter}
+import com.samstarling.prometheusfinagle.filter.{HttpLatencyMonitoringFilter, HttpMonitoringFilter}
+import com.samstarling.prometheusfinagle.metrics.{MetricsService, PrometheusMapper, Telemetry}
 import com.twitter.common.metrics.Metrics
 import com.twitter.finagle.Service
 import com.twitter.finagle.builder.{Server, ServerBuilder}
@@ -15,28 +14,25 @@ import com.twitter.finagle.stats.JsonExporter
 import com.twitter.util.Future
 import io.prometheus.client.CollectorRegistry
 
-case class EchoService(message: String) extends Service[Request, Response] {
-  def apply(req: Request): Future[Response] = {
-    val rep = Response(req.version, Status.Ok)
-    rep.setContentString(s"$message, and the ID was ${req.params.get("id")}")
-    Future(rep)
-  }
-}
+import scala.collection.JavaConverters._
+
+
 
 object TestServer extends App {
 
+  val prometheusMapper = new PrometheusMapper(Metrics.root)
   val registry = new CollectorRegistry(true)
-  val telemetry = new Telemetry(registry, "foo")
+  val telemetry = new Telemetry(registry, "MyServer")
   val monitoringFilter = new HttpMonitoringFilter(telemetry)
   val latencyMonitoringFilter = new HttpLatencyMonitoringFilter(telemetry, Seq(5.0, 10.0))
-  val metricsService = new MetricsService(registry, telemetry)
 
-  val gauge = telemetry.gauge("boaty").set(500.0)
+  val metricsService = new MetricsService({
+    (registry.metricFamilySamples.asScala ++ prometheusMapper.metricFamilySamples.toList).toList
+  })
 
   val routingService: Service[Request, Response] = RoutingService.byMethodAndPathObject {
     case (Method.Get, Root / "hello" / name) => new EchoService(s"Hello ${name}")
     case (Method.Get, Root / "metrics") => metricsService
-    case (Method.Get, Root / "newmetrics") => new PrometheusExporter(Metrics.root)
     case (Method.Get, Root / "fmetrics") => new JsonExporter(Metrics.root)
     case _ => new EchoService("Fallback")
   }

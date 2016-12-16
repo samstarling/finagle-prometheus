@@ -1,4 +1,4 @@
-package com.samstarling.filter
+package com.samstarling.prometheusfinagle.filter
 
 import com.twitter.finagle.http.Status
 

@@ -1,4 +1,4 @@
-package com.samstarling.metrics
+package com.samstarling.prometheusfinagle.metrics
 
 import io.prometheus.client._
 

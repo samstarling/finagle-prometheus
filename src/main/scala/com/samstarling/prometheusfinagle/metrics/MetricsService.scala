@@ -1,19 +1,20 @@
-package com.samstarling.service
+package com.samstarling.prometheusfinagle.metrics
 
 import java.io.StringWriter
 
-import com.samstarling.metrics.Telemetry
 import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Request, Response, Status}
 import com.twitter.util.Future
-import io.prometheus.client.CollectorRegistry
+import io.prometheus.client.Collector.MetricFamilySamples
 import io.prometheus.client.exporter.common.TextFormat
 
-class MetricsService(registry: CollectorRegistry, telemetry: Telemetry) extends Service[Request, Response] {
+import scala.collection.JavaConverters._
+
+class MetricsService(samples: => List[MetricFamilySamples]) extends Service[Request, Response] {
 
   override def apply(request: Request): Future[Response] = {
     val writer = new StringWriter
-    TextFormat.write004(writer, registry.metricFamilySamples())
+    TextFormat.write004(writer, samples.iterator.asJavaEnumeration)
     val response = Response(request.version, Status.Ok)
     response.setContentString(writer.toString)
     Future(response)
