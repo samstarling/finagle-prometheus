@@ -43,5 +43,3 @@ object TestServer extends App {
     .name("HttpServer")
     .build(latencyMonitoringFilter andThen monitoringFilter andThen routingService)
 }
-
-

@@ -1,7 +1,7 @@
 package com.samstarling.prometheusfinagle.filter
 
 import com.samstarling.prometheusfinagle.UnitTest
-import com.samstarling.prometheusfinagle.helper.CollectorRegistryHelper
+import com.samstarling.prometheusfinagle.helper.{CollectorHelper, CollectorRegistryHelper}
 import com.samstarling.prometheusfinagle.metrics.Telemetry
 import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Method, Request, Response, Status}
@@ -26,7 +26,8 @@ class HttpLatencyMonitoringFilterSpec extends UnitTest {
     val registryHelper = CollectorRegistryHelper(registry)
     val telemetry = new Telemetry(registry, "test")
     val buckets = Seq(1.0, 2.0)
-    val filter = new HttpLatencyMonitoringFilter(telemetry, buckets)
+    val labeller = new TestLabeller
+    val filter = new HttpLatencyMonitoringFilter(telemetry, buckets, labeller)
     val service = mock[Service[Request, Response]]
     val slowService = new SlowService
     val request = Request(Method.Get, "/foo/bar")
@@ -54,28 +55,12 @@ class HttpLatencyMonitoringFilterSpec extends UnitTest {
         .map(_.map(_.value).sum) ==== Some(1.0)
     }
 
-    "records a method label" in new Context {
-      Await.result(filter.apply(request, slowService))
+    "increments the counter with the labels from the labeller" in new Context {
+      Await.result(filter.apply(request, service))
 
       registryHelper.samples
         .get("test_incoming_http_request_latency_seconds_count")
-        .map(_.head.dimensions.get("method").get) ==== Some("GET")
-    }
-
-    "records a status label" in new Context {
-      Await.result(filter.apply(request, slowService))
-
-      registryHelper.samples
-        .get("test_incoming_http_request_latency_seconds_count")
-        .map(_.head.dimensions.get("status").get) ==== Some("200")
-    }
-
-    "records a statusClass label" in new Context {
-      Await.result(filter.apply(request, slowService))
-
-      registryHelper.samples
-        .get("test_incoming_http_request_latency_seconds_count")
-        .map(_.head.dimensions.get("statusClass").get) ==== Some("2xx")
+        .map(_.head.dimensions.get("foo").get) ==== Some("bar")
     }
 
     "categorises requests into the correct bucket" in new Context {
