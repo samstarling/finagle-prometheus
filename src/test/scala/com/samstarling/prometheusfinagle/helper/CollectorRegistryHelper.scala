@@ -1,4 +1,4 @@
-package com.samstarling.helper
+package com.samstarling.prometheusfinagle.helper
 
 import io.prometheus.client.Collector.MetricFamilySamples.{Sample => PrometheusSample}
 import io.prometheus.client.{Collector, CollectorRegistry}

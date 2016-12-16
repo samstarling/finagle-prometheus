@@ -1,11 +1,11 @@
-package com.samstarling.metrics
+package com.samstarling.prometheusfinagle.metrics
 
-import com.samstarling.UnitTest
-import com.samstarling.helper.CollectorHelper
+import com.samstarling.prometheusfinagle.UnitTest
+import com.samstarling.prometheusfinagle.helper.CollectorHelper
 import io.prometheus.client.CollectorRegistry
 import org.specs2.specification.Scope
-import scala.collection.JavaConverters._
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class TelemetrySpec extends UnitTest {
