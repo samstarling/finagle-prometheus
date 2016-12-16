@@ -16,7 +16,8 @@ class HttpMonitoringFilterSpec extends UnitTest {
   trait Context extends Scope {
     val registry = new CollectorRegistry(true)
     val telemetry = new Telemetry(registry, "test")
-    val filter = new HttpMonitoringFilter(telemetry)
+    val labeller = new TestLabeller
+    val filter = new HttpMonitoringFilter(telemetry, labeller)
     val service = mock[Service[Request, Response]]
     val request = Request(Method.Get, "/foo/bar")
     val serviceResponse = Response(Status.Created)
@@ -50,26 +51,11 @@ class HttpMonitoringFilterSpec extends UnitTest {
       }
     }
 
-    "increments the counter with" >> {
-      "a method label" in new Context {
-        Await.result(filter.apply(request, service))
-        CollectorHelper.firstSampleFor(counter).map { sample =>
-          sample.labelValues.asScala(0) ==== "GET"
-        }
-      }
-
-      "a status label" in new Context {
-        Await.result(filter.apply(request, service))
-        CollectorHelper.firstSampleFor(counter).map { sample =>
-          sample.labelValues.asScala(1) ==== "201"
-        }
-      }
-
-      "a statusClass label" in new Context {
-        Await.result(filter.apply(request, service))
-        CollectorHelper.firstSampleFor(counter).map { sample =>
-          sample.labelValues.asScala(2) ==== "2xx"
-        }
+    "increments the counter with the labels from the labeller" in new Context {
+      Await.result(filter.apply(request, service))
+      CollectorHelper.firstSampleFor(counter).map { sample =>
+        sample.labelNames.asScala(0) ==== "foo"
+        sample.labelValues.asScala(0) ==== "bar"
       }
     }
   }
