@@ -1,4 +1,4 @@
-package com.samstarling.prometheusfinagle.example
+package com.samstarling.prometheusfinagle.examples
 
 import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Request, Response, Status}

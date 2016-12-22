@@ -1,4 +1,4 @@
-package com.samstarling.prometheusfinagle.example
+package com.samstarling.prometheusfinagle.examples
 
 import java.net.InetSocketAddress
 
