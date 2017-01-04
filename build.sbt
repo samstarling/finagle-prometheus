@@ -1,6 +1,6 @@
 import org.scoverage.coveralls.Imports.CoverallsKeys._
 
-name := "prometheus-finagle"
+name := "finagle-prometheus"
 
 lazy val commonSettings = Seq(
   organization := "com.samstarling",
@@ -8,6 +8,8 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.11.8",
   licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 )
+
+organization := "com.samstarling"
 
 licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 
