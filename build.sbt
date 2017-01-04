@@ -9,6 +9,8 @@ lazy val commonSettings = Seq(
   licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 )
 
+licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
+
 libraryDependencies ++= Seq(
   "com.twitter" % "finagle-core_2.11" % "6.40.0",
   "com.twitter" % "finagle-http_2.11" % "6.40.0",
