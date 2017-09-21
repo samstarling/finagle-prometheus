@@ -4,7 +4,6 @@ name := "finagle-prometheus"
 
 lazy val commonSettings = Seq(
   organization := "com.samstarling",
-  version := "0.0.1",
   scalaVersion := "2.11.8",
   licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 )
