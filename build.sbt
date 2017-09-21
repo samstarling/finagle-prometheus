@@ -11,8 +11,6 @@ lazy val commonSettings = Seq(
 
 organization := "com.samstarling"
 
-licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
-
 libraryDependencies ++= Seq(
   "com.twitter" % "finagle-core_2.11" % "6.40.0",
   "com.twitter" % "finagle-http_2.11" % "6.40.0",
@@ -33,3 +31,22 @@ lazy val examples = (project in file("examples")).
   settings()
 
 lazy val root = project.aggregate(core, examples)
+
+homepage := Some(url("https://github.com/samstarling/finagle-prometheus"))
+
+pomExtra :=
+  <scm>
+    <connection>
+      scm:git:git://github.com/samstarling/finagle-prometheus.git
+    </connection>
+    <url>
+      https://github.com/samstarling/finagle-prometheus
+    </url>
+  </scm>
+  <developers>
+    <developer>
+      <id>samstarling</id>
+      <name>Sam Starling</name>
+      <email>mail@samstarling.co.uk</email>
+    </developer>
+  </developers>
