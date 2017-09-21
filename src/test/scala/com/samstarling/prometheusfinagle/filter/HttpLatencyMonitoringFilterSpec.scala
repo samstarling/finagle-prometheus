@@ -1,7 +1,10 @@
 package com.samstarling.prometheusfinagle.filter
 
 import com.samstarling.prometheusfinagle.UnitTest
-import com.samstarling.prometheusfinagle.helper.{CollectorHelper, CollectorRegistryHelper}
+import com.samstarling.prometheusfinagle.helper.{
+  CollectorHelper,
+  CollectorRegistryHelper
+}
 import com.samstarling.prometheusfinagle.metrics.Telemetry
 import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Method, Request, Response, Status}
@@ -16,7 +19,8 @@ class HttpLatencyMonitoringFilterSpec extends UnitTest {
     implicit val timer = DefaultTimer.twitter
 
     override def apply(request: Request): Future[Response] = {
-      Future.value(Response(request.version, Status.Ok))
+      Future
+        .value(Response(request.version, Status.Ok))
         .delayed(Duration.fromMilliseconds(1500))
     }
   }
@@ -32,7 +36,8 @@ class HttpLatencyMonitoringFilterSpec extends UnitTest {
     val slowService = new SlowService
     val request = Request(Method.Get, "/foo/bar")
     val serviceResponse = Response(Status.Created)
-    val histogram = telemetry.histogram(name = "incoming_http_request_latency_seconds")
+    val histogram =
+      telemetry.histogram(name = "incoming_http_request_latency_seconds")
     service.apply(request) returns Future.value(serviceResponse)
   }
 

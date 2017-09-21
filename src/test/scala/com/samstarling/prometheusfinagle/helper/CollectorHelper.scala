@@ -1,6 +1,8 @@
 package com.samstarling.prometheusfinagle.helper
 
-import io.prometheus.client.Collector.MetricFamilySamples.{Sample => PrometheusSample}
+import io.prometheus.client.Collector.MetricFamilySamples.{
+  Sample => PrometheusSample
+}
 import io.prometheus.client.{Collector, Counter, Gauge, Histogram}
 
 import scala.collection.JavaConverters._
@@ -14,7 +16,8 @@ object CollectorHelper {
     gauge.collect().asScala.toList.headOption
   }
 
-  def firstMetricFor(histogram: Histogram): Option[Collector.MetricFamilySamples] = {
+  def firstMetricFor(
+      histogram: Histogram): Option[Collector.MetricFamilySamples] = {
     histogram.collect().asScala.toList.headOption
   }
 

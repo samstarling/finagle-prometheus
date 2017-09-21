@@ -13,7 +13,8 @@ class MetricsServiceSpec extends UnitTest {
   trait Context extends Scope {
     val registry = new CollectorRegistry(true)
     val telemetry = new Telemetry(registry, "unit_test")
-    val service = new MetricsService(registry.metricFamilySamples.asScala.toList)
+    val service = new MetricsService(
+      registry.metricFamilySamples.asScala.toList)
   }
 
   "it renders metrics correctly" in new Context {
@@ -23,7 +24,7 @@ class MetricsServiceSpec extends UnitTest {
 
     response.getContentString.trim ====
       "# HELP unit_test_foo No help provided\n" +
-      "# TYPE unit_test_foo counter\n" +
-      "unit_test_foo 1.0"
+        "# TYPE unit_test_foo counter\n" +
+        "unit_test_foo 1.0"
   }
 }

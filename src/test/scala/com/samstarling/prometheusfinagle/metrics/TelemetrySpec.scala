@@ -20,7 +20,6 @@ class TelemetrySpec extends UnitTest {
     * have to perform an action against them (such as incrementing a counter) and inspect the resulting metrics
     * and/or samples to ensure that everything is as we expect it.
     */
-
   "#counter" >> {
 
     trait CounterContext extends Context {
