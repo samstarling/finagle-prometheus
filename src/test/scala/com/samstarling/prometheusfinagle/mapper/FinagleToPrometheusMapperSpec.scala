@@ -23,7 +23,7 @@ class FinagleToPrometheusMapperSpec extends UnitTest {
       }
 
       "returns a metric for each counter" in new CounterContext {
-        mapper.metricFamilySamples must have size(3)
+        mapper.metricFamilySamples must have size (3)
       }
     }
 
@@ -35,7 +35,7 @@ class FinagleToPrometheusMapperSpec extends UnitTest {
 
       "returns five metrics for a single histogram" in new HistogramContext {
         // Five metrics: quantiles, min, max, count and sum
-        mapper.metricFamilySamples must have size(5)
+        mapper.metricFamilySamples must have size (5)
       }
     }
 
@@ -52,9 +52,8 @@ class FinagleToPrometheusMapperSpec extends UnitTest {
       }
 
       "returns a metric for each gauge" in new GaugeContext {
-        mapper.metricFamilySamples must have size(1)
+        mapper.metricFamilySamples must have size (1)
       }
     }
   }
 }
-

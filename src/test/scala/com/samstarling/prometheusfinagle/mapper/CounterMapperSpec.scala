@@ -18,7 +18,7 @@ class CounterMapperSpec extends UnitTest {
     }
 
     "produces a metric with a single sample" in new Context {
-      metric.samples must have size(1)
+      metric.samples must have size (1)
     }
 
     "produces a sample with a sanitized name" in new Context {

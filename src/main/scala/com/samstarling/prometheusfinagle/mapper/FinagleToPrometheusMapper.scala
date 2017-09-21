@@ -22,9 +22,12 @@ class FinagleToPrometheusMapper(metrics: Metrics) {
   }
 
   private def histogramSamples: Iterable[MetricFamilySamples] = {
-    histograms.map {
-      case (name, snapshot) => new HistogramMapper().apply(name, snapshot)
-    }.toList.flatten
+    histograms
+      .map {
+        case (name, snapshot) => new HistogramMapper().apply(name, snapshot)
+      }
+      .toList
+      .flatten
   }
 
   private def counterSamples: Iterable[MetricFamilySamples] = {

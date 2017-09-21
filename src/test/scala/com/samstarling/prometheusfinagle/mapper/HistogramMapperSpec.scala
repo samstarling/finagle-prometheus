@@ -15,11 +15,12 @@ class HistogramMapperSpec extends UnitTest {
     override def stddev(): Double = 1
     override def min(): Long = 9
     override def sum(): Long = 100
-    override def percentiles(): Array[Percentile] = List(
-      new Percentile(0.9999, 100L),
-      new Percentile(0.99, 90L),
-      new Percentile(0.50, 50L)
-    ).toArray
+    override def percentiles(): Array[Percentile] =
+      List(
+        new Percentile(0.9999, 100L),
+        new Percentile(0.99, 90L),
+        new Percentile(0.50, 50L)
+      ).toArray
   }
 
   trait Context extends Scope {
@@ -34,7 +35,7 @@ class HistogramMapperSpec extends UnitTest {
     "produces a 'percentile' metric" >> {
       "with a sample for each percentile" in new Context {
         val quantileMetric = metricsByName.get("HttpClient__latencies").get.head
-        quantileMetric.samples must have size(3)
+        quantileMetric.samples must have size (3)
       }
 
       "where each sample has a sanitized name" in new Context {
@@ -44,7 +45,8 @@ class HistogramMapperSpec extends UnitTest {
       }
 
       "where the samples have the percentile as a label" in new Context {
-        val percentileMetric = metricsByName.get("HttpClient__latencies").get.head
+        val percentileMetric =
+          metricsByName.get("HttpClient__latencies").get.head
         val sample = percentileMetric.samples.get(0)
         sample.labelNames.asScala.toList ==== List("percentile")
         sample.labelValues.asScala.toList ==== List("0.9999")
