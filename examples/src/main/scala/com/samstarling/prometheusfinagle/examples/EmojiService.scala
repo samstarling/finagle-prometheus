@@ -17,7 +17,6 @@ class EmojiService(statsReceiver: StatsReceiver) extends Service[Request, Respon
 
   override def apply(request: Request): Future[Response] = {
     client.apply(emojiRequest).map { resp =>
-      println(resp)
       val r = Response(request.version, Status.Ok)
       r.setContentString(s"Emojis: ${resp.getContentString()}")
       r
