@@ -8,7 +8,6 @@ import com.twitter.finagle.builder.ServerBuilder
 import com.twitter.finagle.http._
 import com.twitter.finagle.http.path._
 import com.twitter.finagle.http.service.{NotFoundService, RoutingService}
-import com.twitter.finagle.util.LoadService
 import com.twitter.finagle.{Http, Service}
 import io.prometheus.client.CollectorRegistry
 

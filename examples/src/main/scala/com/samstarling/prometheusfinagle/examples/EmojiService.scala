@@ -7,12 +7,17 @@ import com.twitter.util.Future
 
 class EmojiService(statsReceiver: StatsReceiver) extends Service[Request, Response] {
 
-  val client = Http.client
+  private val client = Http.client
+    .withTls("api.github.com")
     .withStatsReceiver(statsReceiver)
-    .newService("api.github.com:80")
+    .newService("api.github.com:443")
+
+  private val emojiRequest = Request(Method.Get, "/emojis")
+  emojiRequest.headerMap.add("User-Agent", "My-Finagle-Example")
 
   override def apply(request: Request): Future[Response] = {
-    client.apply(Request(Method.Get, "/emojis")).map { resp =>
+    client.apply(emojiRequest).map { resp =>
+      println(resp)
       val r = Response(request.version, Status.Ok)
       r.setContentString(s"Emojis: ${resp.getContentString()}")
       r
