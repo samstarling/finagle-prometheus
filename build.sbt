@@ -4,20 +4,22 @@ name := "finagle-prometheus"
 
 lazy val commonSettings = Seq(
   organization := "com.samstarling",
-  scalaVersion := "2.11.8",
+  scalaVersion := "2.12.3",
   licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 )
+
+crossScalaVersions := Seq("2.11.11", "2.12.3")
 
 organization := "com.samstarling"
 
 libraryDependencies ++= Seq(
-  "com.twitter" % "finagle-core_2.11" % "6.40.0",
-  "com.twitter" % "finagle-http_2.11" % "6.40.0",
-  "com.twitter" % "finagle-stats_2.11" % "6.40.0",
-  "io.prometheus" % "simpleclient" % "0.0.19",
-  "io.prometheus" % "simpleclient_common" % "0.0.19",
-  "org.specs2" %% "specs2-core" % "3.8.5" % "test",
-  "org.specs2" %% "specs2-mock" % "3.8.5" % "test"
+  "com.twitter" %% "finagle-core" % "7.1.0",
+  "com.twitter" %% "finagle-http" % "7.1.0",
+  "com.twitter" %% "finagle-stats" % "7.1.0",
+  "io.prometheus" % "simpleclient" % "0.0.26",
+  "io.prometheus" % "simpleclient_common" % "0.0.26",
+  "org.specs2" %% "specs2-core" % "3.9.5" % "test",
+  "org.specs2" %% "specs2-mock" % "3.9.5" % "test"
 )
 
 lazy val core = (project in file("."))
