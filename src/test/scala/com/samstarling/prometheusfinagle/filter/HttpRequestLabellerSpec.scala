@@ -9,7 +9,7 @@ class HttpRequestLabellerSpec extends UnitTest {
   trait Context extends Scope {
     val request = Request(Method.Get, "/foo/bar")
     val response = Response(Status.Ok)
-    val labeller = new HttpRequestLabeller()
+    val labeller = new HttpServiceLabeller()
     val labels = labeller.labelsFor(request, response)
   }
 

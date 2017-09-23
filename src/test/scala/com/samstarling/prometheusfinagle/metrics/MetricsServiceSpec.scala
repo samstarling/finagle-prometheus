@@ -13,8 +13,7 @@ class MetricsServiceSpec extends UnitTest {
   trait Context extends Scope {
     val registry = new CollectorRegistry(true)
     val telemetry = new Telemetry(registry, "unit_test")
-    val service = new MetricsService(
-      registry.metricFamilySamples.asScala.toList)
+    val service = new MetricsService(registry)
   }
 
   "it renders metrics correctly" in new Context {

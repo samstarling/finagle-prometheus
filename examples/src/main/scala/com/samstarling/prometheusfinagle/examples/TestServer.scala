@@ -8,13 +8,16 @@ import com.twitter.finagle.builder.ServerBuilder
 import com.twitter.finagle.http._
 import com.twitter.finagle.http.path._
 import com.twitter.finagle.http.service.{NotFoundService, RoutingService}
+import com.twitter.finagle.loadbalancer.perHostStats
 import com.twitter.finagle.{Http, Service}
 import io.prometheus.client.CollectorRegistry
 
 object TestServer extends App {
 
+  perHostStats.parse("true")
+
   val registry = new CollectorRegistry(true)
-  val statsReceiver = new PrometheusStatsReceiver(registry, "foo")
+  val statsReceiver = new PrometheusStatsReceiver(registry, "namespace")
 
   val router: Service[Request, Response] = RoutingService.byMethodAndPathObject {
     case (Method.Get, Root / "emoji") => new EmojiService(statsReceiver)
