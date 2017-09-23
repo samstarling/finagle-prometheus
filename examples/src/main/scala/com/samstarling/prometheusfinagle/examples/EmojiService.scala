@@ -2,7 +2,8 @@ package com.samstarling.prometheusfinagle.examples
 
 import com.twitter.finagle.{Http, Service}
 import com.twitter.finagle.http.{Method, Request, Response, Status}
-import com.twitter.finagle.stats.StatsReceiver
+import com.twitter.finagle.loadbalancer.LoadBalancerFactory
+import com.twitter.finagle.stats.{DefaultStatsReceiver, StatsReceiver}
 import com.twitter.util.Future
 
 class EmojiService(statsReceiver: StatsReceiver) extends Service[Request, Response] {
@@ -10,7 +11,9 @@ class EmojiService(statsReceiver: StatsReceiver) extends Service[Request, Respon
   private val client = Http.client
     .withTls("api.github.com")
     .withStatsReceiver(statsReceiver)
-    .newService("api.github.com:443")
+    .withHttpStats
+    .configured(LoadBalancerFactory.HostStats(DefaultStatsReceiver.scope("host")))
+    .newService("api.github.com:443", "api.github.com:/emojis:GET")
 
   private val emojiRequest = Request(Method.Get, "/emojis")
   emojiRequest.headerMap.add("User-Agent", "My-Finagle-Example")

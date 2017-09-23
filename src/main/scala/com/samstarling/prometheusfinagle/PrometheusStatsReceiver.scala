@@ -17,7 +17,8 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String) ex
 
   override def counter(verbosity: Verbosity, name: String*): Counter = new Counter {
     override def incr(delta: Long): Unit = {
-      counters.getOrElseUpdate(name, newCounter(name)).inc(delta)
+      val (_, labelValues) = extractLabelValues(name)
+      counters.getOrElseUpdate(name, newCounter(name)).labels(labelValues: _*).inc(delta)
     }
   }
 
@@ -33,31 +34,55 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String) ex
   }
 
   private def newCounter(name: Seq[String]): PCounter = {
+    val (metricName, labelNames) =
+      extractLabelNames(name)
     PCounter.build()
       .namespace(namespace)
-      .name(sanitizeName(name))
+      .name(metricName)
+      .labelNames(labelNames: _*)
       .help(helpMessage)
       .register(registry)
   }
 
   private def newHistogram(name: Seq[String]): PHistogram = {
+    val (metricName, labelNames) =
+      extractLabelNames(name)
+
     PHistogram.build()
       .namespace(namespace)
-      .name(sanitizeName(name))
+      .name(metricName)
+      .labelNames(labelNames:_*)
       .buckets(0, 1, 2, 3, 4, 5) // TODO: Which buckets does Finagle use?
       .help(helpMessage)
       .register(registry)
   }
 
   private def newGauge(name: Seq[String]): PGauge = {
+    val (metricName, labelNames) =
+      extractLabelNames(name)
+
     PGauge.build()
       .namespace(namespace)
-      .name(sanitizeName(name))
+      .name(metricName)
+      .labelNames(labelNames:_*)
       .help(helpMessage)
       .register(registry)
   }
 
-  private def sanitizeName(name: Seq[String]) = {
+  private def sanitizeName(name: Seq[String]): String = {
     name.map(_.replaceAll("[^\\w]", "_")).mkString("__")
   }
+
+  protected def extractLabelNames(name: Seq[String]): (String, Seq[String]) = name match {
+    case Seq(label, "requests") =>
+      ("requests", Seq("serviceName"))
+    case default => (sanitizeName(default), Seq.empty[String])
+  }
+
+  protected def extractLabelValues(name: Seq[String]): (String, Seq[String]) = name match {
+    case Seq(label, "requests") =>
+      ("requests", Seq(label))
+    case default => (sanitizeName(default), Seq.empty[String])
+  }
+
 }
