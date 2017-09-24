@@ -19,7 +19,6 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
   override def repr: AnyRef = this
 
   override def counter(verbosity: Verbosity, name: String*): Counter = new Counter {
-    println(s"Adding ${labeller.sanitizeName(name)} to ${counters.keys}")
     override def incr(delta: Long): Unit = {
       // TODO: Calling sanitizeName twice could be nicer, but we need to avoid registering duplicate metrics
       // with the same name in the CollectorRegistry
