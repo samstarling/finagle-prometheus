@@ -1,10 +1,7 @@
 package com.samstarling.prometheusfinagle.filter
 
 import com.samstarling.prometheusfinagle.UnitTest
-import com.samstarling.prometheusfinagle.helper.{
-  CollectorHelper,
-  CollectorRegistryHelper
-}
+import com.samstarling.prometheusfinagle.helper.{CollectorHelper, CollectorRegistryHelper}
 import com.samstarling.prometheusfinagle.metrics.Telemetry
 import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Method, Request, Response, Status}
