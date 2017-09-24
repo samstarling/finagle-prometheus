@@ -4,12 +4,12 @@ import com.samstarling.prometheusfinagle.UnitTest
 import com.twitter.finagle.http.{Method, Request, Response, Status}
 import org.specs2.specification.Scope
 
-class HttpRequestLabellerSpec extends UnitTest {
+class HttpServiceLabellerSpec extends UnitTest {
 
   trait Context extends Scope {
     val request = Request(Method.Get, "/foo/bar")
     val response = Response(Status.Ok)
-    val labeller = new HttpRequestLabeller()
+    val labeller = new HttpServiceLabeller()
     val labels = labeller.labelsFor(request, response)
   }
 
