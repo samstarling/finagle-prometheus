@@ -14,7 +14,7 @@ import io.prometheus.client.CollectorRegistry
 object TestServer extends App {
 
   val registry = new CollectorRegistry(true)
-  val statsReceiver = new PrometheusStatsReceiver(registry, "foo")
+  val statsReceiver = new PrometheusStatsReceiver(registry, "namespace")
 
   val router: Service[Request, Response] = RoutingService.byMethodAndPathObject {
     case (Method.Get, Root / "emoji") => new EmojiService(statsReceiver)
@@ -23,9 +23,11 @@ object TestServer extends App {
     case _ => new NotFoundService
   }
 
+  val serverStatsFilter = new ServerStatsFilter
+
   ServerBuilder()
     .stack(Http.server)
-    .name("admin")
+    .name("testserver")
     .bindTo(new InetSocketAddress(8080))
     .build(router)
 }
