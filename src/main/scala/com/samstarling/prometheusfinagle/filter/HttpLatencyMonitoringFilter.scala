@@ -7,7 +7,8 @@ import com.twitter.util.{Future, Stopwatch}
 
 class HttpLatencyMonitoringFilter(telemetry: Telemetry,
                                   buckets: Seq[Double],
-                                  labeller: RequestLabeller = new HttpRequestLabeller) extends SimpleFilter[Request, Response] {
+                                  labeller: HttpServiceLabeller = new HttpServiceLabeller)
+  extends SimpleFilter[Request, Response] {
 
   private val histogram = telemetry.histogram(
     name = "incoming_http_request_latency_seconds",
@@ -19,8 +20,8 @@ class HttpLatencyMonitoringFilter(telemetry: Telemetry,
   override def apply(request: Request, service: Service[Request, Response]): Future[Response] = {
     val stopwatch = Stopwatch.start()
     service(request) onSuccess { response =>
-      val labels = labeller.labelsFor(request, response)
-      histogram.labels(labels: _*).observe(stopwatch().inMilliseconds / 1000.0)
+      histogram.labels(labeller.labelsFor(request, response): _*)
+        .observe(stopwatch().inMilliseconds / 1000.0)
     }
   }
 }

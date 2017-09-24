@@ -15,9 +15,12 @@ class Telemetry(registry: CollectorRegistry, namespace: String) {
 
   // TODO: Support injecting default labels
 
-  def counter(name: String, help: String = "No help provided", labelNames: Seq[String] = Seq.empty): Counter = {
+  def counter(name: String,
+              help: String = "No help provided",
+              labelNames: Seq[String] = Seq.empty): Counter = {
     counters.getOrElseUpdate(cacheKeyFor(name), {
-      Counter.build()
+      Counter
+        .build()
         .namespace(namespace)
         .name(name)
         .help(help)
@@ -26,10 +29,13 @@ class Telemetry(registry: CollectorRegistry, namespace: String) {
     })
   }
 
-  def histogram(name: String, help: String = "No help provided", labelNames: Seq[String] = Seq.empty,
+  def histogram(name: String,
+                help: String = "No help provided",
+                labelNames: Seq[String] = Seq.empty,
                 buckets: Seq[Double] = Seq(0.1, 0.5, 1.0, 5.0)): Histogram = {
     histograms.getOrElseUpdate(cacheKeyFor(name), {
-      Histogram.build()
+      Histogram
+        .build()
         .namespace(namespace)
         .name(name)
         .help(help)
@@ -39,9 +45,12 @@ class Telemetry(registry: CollectorRegistry, namespace: String) {
     })
   }
 
-  def gauge(name: String, help: String = "No help provided", labelNames: Seq[String] = Seq.empty): Gauge = {
+  def gauge(name: String,
+            help: String = "No help provided",
+            labelNames: Seq[String] = Seq.empty): Gauge = {
     gauges.getOrElseUpdate(cacheKeyFor(name), {
-      Gauge.build()
+      Gauge
+        .build()
         .namespace(namespace)
         .name(name)
         .help(help)
@@ -50,4 +59,3 @@ class Telemetry(registry: CollectorRegistry, namespace: String) {
     })
   }
 }
-

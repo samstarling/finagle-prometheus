@@ -2,44 +2,33 @@ package com.samstarling.prometheusfinagle.examples
 
 import java.net.InetSocketAddress
 
-import com.samstarling.prometheusfinagle.filter.{HttpLatencyMonitoringFilter, HttpMonitoringFilter}
-import com.samstarling.prometheusfinagle.mapper.FinagleToPrometheusMapper
-import com.samstarling.prometheusfinagle.metrics.{MetricsService, Telemetry}
-import com.twitter.common.metrics.Metrics
-import com.twitter.finagle.Service
-import com.twitter.finagle.builder.{Server, ServerBuilder}
+import com.samstarling.prometheusfinagle.PrometheusStatsReceiver
+import com.samstarling.prometheusfinagle.metrics.MetricsService
+import com.twitter.finagle.builder.ServerBuilder
 import com.twitter.finagle.http._
 import com.twitter.finagle.http.path._
-import com.twitter.finagle.http.service.RoutingService
-import com.twitter.finagle.stats.JsonExporter
+import com.twitter.finagle.http.service.{NotFoundService, RoutingService}
+import com.twitter.finagle.loadbalancer.perHostStats
+import com.twitter.finagle.{Http, Service}
 import io.prometheus.client.CollectorRegistry
-
-import scala.collection.JavaConverters._
 
 object TestServer extends App {
 
-  val prometheusMapper = new FinagleToPrometheusMapper(Metrics.root)
+  perHostStats.parse("true")
+
   val registry = new CollectorRegistry(true)
-  val telemetry = new Telemetry(registry, "MyServer")
-  val monitoringFilter = new HttpMonitoringFilter(telemetry)
-  val latencyMonitoringFilter = new HttpLatencyMonitoringFilter(telemetry, Seq(5.0, 10.0))
+  val statsReceiver = new PrometheusStatsReceiver(registry, "namespace")
 
-  private def allMetrics = {
-    (registry.metricFamilySamples.asScala ++ prometheusMapper.metricFamilySamples.toList).toList
+  val router: Service[Request, Response] = RoutingService.byMethodAndPathObject {
+    case (Method.Get, Root / "emoji") => new EmojiService(statsReceiver)
+    case (Method.Get, Root / "metrics") => new MetricsService(registry)
+    case (Method.Get, Root / "echo") => new EchoService
+    case _ => new NotFoundService
   }
 
-  val metricsService = new MetricsService(allMetrics)
-
-  val routingService: Service[Request, Response] = RoutingService.byMethodAndPathObject {
-    case (Method.Get, Root / "hello" / name) => new EchoService(s"Hello ${name}")
-    case (Method.Get, Root / "metrics") => metricsService
-    case (Method.Get, Root / "finagle-metrics") => new JsonExporter(Metrics.root)
-    case _ => new EchoService("Fallback")
-  }
-
-  val server: Server = ServerBuilder()
-    .codec(Http())
+  ServerBuilder()
+    .stack(Http.server)
+    .name("testserver")
     .bindTo(new InetSocketAddress(8080))
-    .name("HttpServer")
-    .build(latencyMonitoringFilter andThen monitoringFilter andThen routingService)
+    .build(router)
 }
