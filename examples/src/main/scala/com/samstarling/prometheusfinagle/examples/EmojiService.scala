@@ -13,7 +13,7 @@ class EmojiService(statsReceiver: StatsReceiver) extends Service[Request, Respon
     .withStatsReceiver(statsReceiver)
     .withHttpStats
     .configured(LoadBalancerFactory.HostStats(DefaultStatsReceiver.scope("host")))
-    .newService("api.github.com:443", "api.github.com:/emojis:GET")
+    .newService("api.github.com:443", "GitHub")
 
   private val emojiRequest = Request(Method.Get, "/emojis")
   emojiRequest.headerMap.add("User-Agent", "My-Finagle-Example")
@@ -21,7 +21,7 @@ class EmojiService(statsReceiver: StatsReceiver) extends Service[Request, Respon
   override def apply(request: Request): Future[Response] = {
     client.apply(emojiRequest).map { resp =>
       val r = Response(request.version, Status.Ok)
-      r.setContentString(s"Emojis: ${resp.getContentString()}")
+      r.setContentString(resp.getContentString())
       r
     }
   }

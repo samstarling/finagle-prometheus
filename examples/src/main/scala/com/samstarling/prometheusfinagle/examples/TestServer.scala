@@ -28,7 +28,7 @@ object TestServer extends App {
 
   ServerBuilder()
     .stack(Http.server)
-    .name("admin")
+    .name("testserver")
     .bindTo(new InetSocketAddress(8080))
     .build(router)
 }

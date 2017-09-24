@@ -6,8 +6,6 @@ import com.twitter.util.Await
 import io.prometheus.client.CollectorRegistry
 import org.specs2.specification.Scope
 
-import scala.collection.JavaConverters._
-
 class MetricsServiceSpec extends UnitTest {
 
   trait Context extends Scope {
