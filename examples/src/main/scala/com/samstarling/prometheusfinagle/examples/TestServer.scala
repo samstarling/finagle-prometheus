@@ -16,8 +16,8 @@ object TestServer extends App {
 
   perHostStats.parse("true")
 
-  val registry = new CollectorRegistry(true)
-  val statsReceiver = new PrometheusStatsReceiver(registry, "namespace")
+  val registry = CollectorRegistry.defaultRegistry
+  val statsReceiver = new PrometheusStatsReceiver
 
   val router: Service[Request, Response] = RoutingService.byMethodAndPathObject {
     case (Method.Get, Root / "emoji") => new EmojiService(statsReceiver)
