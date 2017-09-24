@@ -5,8 +5,10 @@ import io.prometheus.client.{CollectorRegistry, Counter => PCounter, Gauge => PG
 
 import scala.collection.concurrent.TrieMap
 
-class PrometheusStatsReceiver(registry: CollectorRegistry,
-                              namespace: String) extends StatsReceiver {
+class PrometheusStatsReceiver extends StatsReceiver {
+
+  private val registry = CollectorRegistry.defaultRegistry
+  private val namespace = "namespace"
 
   private val counters = TrieMap.empty[String, PCounter]
   private val histograms = TrieMap.empty[String, PHistogram]
@@ -19,7 +21,6 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
 
   override def counter(verbosity: Verbosity, name: String*): Counter = {
     val (metricName, labels) = extractLabels(name)
-
     new Counter {
       override def incr(delta: Long): Unit = {
         counters.getOrElseUpdate(metricName, newCounter(metricName, labels.keys.toSeq)).labels(labels.values.toSeq: _*).inc(delta)
@@ -39,7 +40,6 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
   override def addGauge(verbosity: Verbosity, name: String*)(f: => Float): Gauge = {
     val (metricName, labels) = extractLabels(name)
     gauges.getOrElseUpdate(metricName, newGauge(metricName, labels.keys.toSeq)).labels(labels.values.toSeq: _*).set(f)
-
     new Gauge {
       override def remove(): Unit = gauges.remove(metricName)
     }
@@ -78,8 +78,6 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
   protected def extractLabels(name: Seq[String]): (String, Map[String, String]) = {
     metricPattern.applyOrElse(name, (x: Seq[String]) => DefaultMetricPatterns.sanitizeName(x) -> Map.empty)
   }
-
-
 }
 
 object DefaultMetricPatterns {
