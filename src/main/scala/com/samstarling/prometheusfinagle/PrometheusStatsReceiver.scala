@@ -5,12 +5,14 @@ import io.prometheus.client.{CollectorRegistry, Counter => PCounter, Gauge => PG
 
 import scala.collection.concurrent.TrieMap
 
-class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String) extends StatsReceiver {
+class PrometheusStatsReceiver(registry: CollectorRegistry,
+                              namespace: String) extends StatsReceiver {
 
   private val counters = TrieMap.empty[String, PCounter]
   private val histograms = TrieMap.empty[String, PHistogram]
   private val gauges = TrieMap.empty[String, PGauge]
 
+  // TODO: Map name (Seq[String]) to a meaningful help string
   private val helpMessage = "Help is not currently available"
 
   override def repr: AnyRef = this
@@ -57,7 +59,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String) ex
       .namespace(namespace)
       .name(metricName)
       .labelNames(labelNames:_*)
-      .buckets(0, 1, 2, 3, 4, 5) // TODO: Which buckets does Finagle use?
+      .buckets(0, 1, 2, 3, 4, 5) // TODO: Map name (Seq[String]) to bucket configuration
       .help(helpMessage)
       .register(registry)
   }
