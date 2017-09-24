@@ -9,9 +9,9 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
                               namespace: String,
                               labeller: MetricLabeller = new MetricLabeller) extends StatsReceiver {
 
-  private val counters = TrieMap.empty[Seq[String], PCounter]
-  private val histograms = TrieMap.empty[Seq[String], PHistogram]
-  private val gauges = TrieMap.empty[Seq[String], PGauge]
+  private val counters = TrieMap.empty[String, PCounter]
+  private val histograms = TrieMap.empty[String, PHistogram]
+  private val gauges = TrieMap.empty[String, PGauge]
 
   // TODO: Map name (Seq[String]) to a meaningful help string
   private val helpMessage = "Help is not currently available"
@@ -19,8 +19,11 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
   override def repr: AnyRef = this
 
   override def counter(verbosity: Verbosity, name: String*): Counter = new Counter {
+    println(s"Adding ${labeller.sanitizeName(name)} to ${counters.keys}")
     override def incr(delta: Long): Unit = {
-      counters.getOrElseUpdate(name, newCounter(name))
+      // TODO: Calling sanitizeName twice could be nicer, but we need to avoid registering duplicate metrics
+      // with the same name in the CollectorRegistry
+      counters.getOrElseUpdate(labeller.sanitizeName(name), newCounter(labeller.sanitizeName(name), labeller.labelNamesFor(name)))
         .labels(labeller.labelsFor(name): _*)
         .inc(delta)
     }
@@ -28,22 +31,21 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
 
   override def stat(verbosity: Verbosity, name: String*): Stat = new Stat {
     override def add(value: Float): Unit = {
-      histograms.getOrElseUpdate(name, newHistogram(name))
+      histograms.getOrElseUpdate(labeller.sanitizeName(name), newHistogram(labeller.sanitizeName(name), labeller.labelNamesFor(name)))
         .labels(labeller.labelsFor(name): _*)
         .observe(value)
     }
   }
 
   override def addGauge(verbosity: Verbosity, name: String*)(f: => Float): Gauge = new Gauge {
-    gauges.getOrElseUpdate(name, newGauge(name))
+    gauges.getOrElseUpdate(labeller.sanitizeName(name), newGauge(labeller.sanitizeName(name), labeller.labelNamesFor(name)))
       .labels(labeller.labelsFor(name): _*)
       .set(f)
-    override def remove(): Unit = gauges.remove(name)
+    override def remove(): Unit = gauges.remove(labeller.sanitizeName(name))
   }
 
   // TODO: Can the following three methods be generic?
-  private def newCounter(rawName: Seq[String]): PCounter = {
-    val (name, labelNames) = labeller.labelNamesFor(rawName)
+  private def newCounter(name: String, labelNames: Seq[String]): PCounter = {
     PCounter.build()
       .namespace(namespace)
       .name(name)
@@ -52,8 +54,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
       .register(registry)
   }
 
-  private def newHistogram(rawName: Seq[String]): PHistogram = {
-    val (name, labelNames) = labeller.labelNamesFor(rawName)
+  private def newHistogram(name: String, labelNames: Seq[String]): PHistogram = {
     PHistogram.build()
       .namespace(namespace)
       .name(name)
@@ -63,8 +64,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
       .register(registry)
   }
 
-  private def newGauge(rawName: Seq[String]): PGauge = {
-    val (name, labelNames) = labeller.labelNamesFor(rawName)
+  private def newGauge(name: String, labelNames: Seq[String]): PGauge = {
     PGauge.build()
       .namespace(namespace)
       .name(name)

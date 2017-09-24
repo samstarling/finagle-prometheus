@@ -10,6 +10,7 @@ class EmojiService(statsReceiver: StatsReceiver) extends Service[Request, Respon
   private val client = Http.client
     .withTls("api.github.com")
     .withStatsReceiver(statsReceiver)
+    .withHttpStats
     .newService("api.github.com:443", "GitHub")
 
   private val emojiRequest = Request(Method.Get, "/emojis")
