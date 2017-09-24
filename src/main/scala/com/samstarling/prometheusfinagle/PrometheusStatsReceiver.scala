@@ -71,53 +71,35 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String) ex
       .register(registry)
   }
 
-  private def sanitizeName(name: Seq[String]): String = {
-    name.map(_.replaceAll("[^\\w]", "_")).mkString("__")
-  }
-
   def metricPattern: DefaultMetricPatterns.Pattern = DefaultMetricPatterns.All
 
   protected def extractLabels(name: Seq[String]): (String, Map[String, String]) = {
-    metricPattern.applyOrElse(name, (x: Seq[String]) => sanitizeName(x) -> Map.empty)
+    metricPattern.applyOrElse(name, (x: Seq[String]) => DefaultMetricPatterns.sanitizeName(x) -> Map.empty)
   }
 
 
 }
 
 object DefaultMetricPatterns {
+  def sanitizeName(name: Seq[String]): String = {
+    name.map(_.replaceAll("[^\\w]", "_")).mkString("__")
+  }
+
   type Pattern = PartialFunction[Seq[String], (String, Map[String, String])]
 
   val prometheusLabelForLabel = "serviceName"
 
+  val DefaultMatch: Pattern = {
+    case label +: metrics =>
+      (sanitizeName(metrics), Map(prometheusLabelForLabel -> label))
+  }
+
   val Core: Pattern = {
     case Seq(label, metric) =>
       (metric, Map(prometheusLabelForLabel -> label))
-    case Seq(label, "request_payload_bytes") =>
-      ("request_payload_bytes", Map(prometheusLabelForLabel -> label))
-    case Seq(label, "response_payload_bytes") =>
-      ("response_payload_bytes", Map(prometheusLabelForLabel -> label))
-    case Seq(label, "retries", metric @ ("request_limit" | "budget_exhausted" | "requeues_per_request" | "budget" | "requeues" | "cannot_retry" | "not_open")) =>
-      (s"retries_$metric", Map(prometheusLabelForLabel -> label))
-    case Seq(label, "nack_admission_control", metric @ ("dropped_requests")) =>
-      (s"nack_admission_control_$metric", Map(prometheusLabelForLabel -> label))
-    case Seq(label, "failfast", metric @ ("unhealthy_for_ms" | "marked_dead" | "marked_available" | "unhealthy_num_tries")) =>
-      (s"failfast_$metric", Map(prometheusLabelForLabel -> label))
-    case Seq(label, "dtab", metric @ ("size")) =>
-      (s"dtab_$metric", Map(prometheusLabelForLabel -> label))
-    case Seq(label, "dispatcher", "serial", "queue_size") =>
-      ("dispatcher_serial_queue_size", Map(prometheusLabelForLabel -> label))
-    case Seq(label, "service_creation", "service_acquisition_latency_ms") =>
-      ("service_creation_service_acquisition_latency_ms", Map(prometheusLabelForLabel -> label))
-  }
-
-  val FailureAccrual: Pattern = {
-    case Seq(label, "failure_accrual", metric@("removals" | "revivals" | "probes" | "removed_for_ms")) =>
-      (s"loadbalancer_$metric", Map(prometheusLabelForLabel -> label))
   }
 
   val LoadBalancer: Pattern = {
-    case Seq(label, "loadbalancer", metric@("busy"|"available"|"size"|"adds"|"meanweight"|"closed"|"load"|"rebuilds"|"updates"|"max_effort_exhausted"|"removes")) =>
-      (s"loadbalancer_$metric", Map(prometheusLabelForLabel -> label))
     case Seq(label, "loadbalancer", "algorithm", algorithm) =>
       (s"loadbalancer_algorithm", Map(prometheusLabelForLabel -> label, "algorithm" -> algorithm))
   }
@@ -134,6 +116,6 @@ object DefaultMetricPatterns {
   val All: Pattern =
     Core
       .orElse(LoadBalancer)
-      .orElse(FailureAccrual)
       .orElse(Http)
+      .orElse(DefaultMatch)
 }
