@@ -82,7 +82,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String) ex
 
 object DefaultMetricPatterns {
   def sanitizeName(name: Seq[String]): String = {
-    name.map(_.replaceAll("[^\\w]", "_")).mkString("__")
+    name.map(_.replaceAll("[^\\w]", "_")).mkString("_")
   }
 
   type Pattern = PartialFunction[Seq[String], (String, Map[String, String])]
