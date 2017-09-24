@@ -23,8 +23,6 @@ object TestServer extends App {
     case _ => new NotFoundService
   }
 
-  val serverStatsFilter = new ServerStatsFilter
-
   ServerBuilder()
     .stack(Http.server)
     .name("testserver")
