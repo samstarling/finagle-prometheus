@@ -12,7 +12,7 @@ class EmojiService(statsReceiver: StatsReceiver) extends Service[Request, Respon
     .withTls("api.github.com")
     .withStatsReceiver(statsReceiver)
     .withHttpStats
-    .configured(LoadBalancerFactory.HostStats(DefaultStatsReceiver.scope("host")))
+    .configured(LoadBalancerFactory.HostStats(statsReceiver.scope("host")))
     .newService("api.github.com:443", "GitHub")
 
   private val emojiRequest = Request(Method.Get, "/emojis")
