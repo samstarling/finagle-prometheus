@@ -1,15 +1,14 @@
 package com.samstarling.prometheusfinagle
 
 import com.twitter.finagle.stats._
-import io.prometheus.client.{CollectorRegistry, Counter => PCounter, Gauge => PGauge, Histogram => PHistogram}
-
+import io.prometheus.client.{CollectorRegistry, Summary, Counter => PCounter, Gauge => PGauge, Histogram => PHistogram}
 import scala.collection.concurrent.TrieMap
 
 class PrometheusStatsReceiver(registry: CollectorRegistry,
                               namespace: String) extends StatsReceiver {
 
   private val counters = TrieMap.empty[String, PCounter]
-  private val histograms = TrieMap.empty[String, PHistogram]
+  private val summaries = TrieMap.empty[String, Summary]
   private val gauges = TrieMap.empty[String, PGauge]
 
   // TODO: Map name (Seq[String]) to a meaningful help string
@@ -31,7 +30,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
     val (metricName, labels) = extractLabels(name)
     new Stat {
       override def add(value: Float): Unit = {
-        histograms.getOrElseUpdate(metricName, newHistogram(metricName, labels.keys.toSeq)).labels(labels.values.toSeq: _*).observe(value)
+        summaries.getOrElseUpdate(metricName, newSummary(metricName, labels.keys.toSeq)).labels(labels.values.toSeq: _*).observe(value)
       }
     }
   }
@@ -54,12 +53,17 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
       .register(registry)
   }
 
-  private def newHistogram(metricName: String, labelNames: Seq[String]): PHistogram = {
-    PHistogram.build()
+  private def newSummary(metricName: String, labelNames: Seq[String]): Summary = {
+    Summary.build()
       .namespace(namespace)
       .name(metricName)
-      .labelNames(labelNames:_*)
-      .buckets(0, 1, 2, 3, 4, 5) // TODO: Map name (Seq[String]) to bucket configuration
+      .labelNames(labelNames: _*)
+      .quantile(0.5, 0.0001)
+      .quantile(0.9, 0.0001)
+      .quantile(0.95, 0.0001)
+      .quantile(0.99, 0.0001)
+      .quantile(0.999, 0.0001)
+      .quantile(0.9999, 0.0001)
       .help(helpMessage)
       .register(registry)
   }
@@ -68,7 +72,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
     PGauge.build()
       .namespace(namespace)
       .name(metricName)
-      .labelNames(labelNames:_*)
+      .labelNames(labelNames: _*)
       .help(helpMessage)
       .register(registry)
   }
@@ -112,13 +116,12 @@ object DefaultMetricPatterns {
   }
 
 
-
   val Http: Pattern = {
-    case Seq(label, "http", "time", resultCode) =>
+    case Seq(label, "http", "time", resultCode)   =>
       ("http_request_duration", Map(prometheusLabelForLabel -> label, "resultCode" -> resultCode))
     case Seq(label, "http", "status", resultCode) =>
       ("http_request_classification", Map(prometheusLabelForLabel -> label, "resultCode" -> resultCode))
-    case Seq(label, "http", "response_size") =>
+    case Seq(label, "http", "response_size")      =>
       ("http_response_size", Map(prometheusLabelForLabel -> label))
   }
 
