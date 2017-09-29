@@ -59,7 +59,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
       .namespace(namespace)
       .name(metricName)
       .labelNames(labelNames:_*)
-      .buckets(0, 1, 2, 3, 4, 5) // TODO: Map name (Seq[String]) to bucket configuration
+      .buckets(0, 1, 2, 3, 4, 5, 50, 100, 200, 1000, 5000) // TODO: Map name (Seq[String]) to bucket configuration
       .help(helpMessage)
       .register(registry)
   }
@@ -84,7 +84,8 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
 
 object DefaultMetricPatterns {
   def sanitizeName(name: Seq[String]): String = {
-    name.map(_.replaceAll("[^\\w]", "_")).mkString("_")
+//    name.map(_.replaceAll("[^\\w]", "_")).mkString("_")
+    name.mkString("_")
   }
 
   type Pattern = PartialFunction[Seq[String], (String, Map[String, String])]
@@ -96,6 +97,11 @@ object DefaultMetricPatterns {
       (sanitizeName(metrics), Map(prometheusLabelForLabel -> label))
   }
 
+  val PerHost: Pattern = {
+    case "host" +: label +: host +: metrics =>
+      (s"host_${sanitizeName(metrics)}", Map(prometheusLabelForLabel -> label, "host" -> host))
+  }
+
   val Core: Pattern = {
     case Seq(label, metric) =>
       (metric, Map(prometheusLabelForLabel -> label))
@@ -105,6 +111,8 @@ object DefaultMetricPatterns {
     case Seq(label, "loadbalancer", "algorithm", algorithm) =>
       (s"loadbalancer_algorithm", Map(prometheusLabelForLabel -> label, "algorithm" -> algorithm))
   }
+
+
 
   val Http: Pattern = {
     case Seq(label, "http", "time", resultCode) =>
@@ -119,5 +127,6 @@ object DefaultMetricPatterns {
     Core
       .orElse(LoadBalancer)
       .orElse(Http)
+      .orElse(PerHost)
       .orElse(DefaultMatch)
 }
