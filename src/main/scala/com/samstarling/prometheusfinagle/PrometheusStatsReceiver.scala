@@ -59,7 +59,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
       .namespace(namespace)
       .name(metricName)
       .labelNames(labelNames:_*)
-      .buckets(0, 1, 2, 3, 4, 5, 50, 100, 200, 1000, 5000) // TODO: Map name (Seq[String]) to bucket configuration
+      .buckets(0, 1, 2, 3, 4, 5) // TODO: Map name (Seq[String]) to bucket configuration
       .help(helpMessage)
       .register(registry)
   }
@@ -84,8 +84,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
 
 object DefaultMetricPatterns {
   def sanitizeName(name: Seq[String]): String = {
-//    name.map(_.replaceAll("[^\\w]", "_")).mkString("_")
-    name.mkString("_")
+    name.map(_.replaceAll("[^\\w]", "_")).mkString("_")
   }
 
   type Pattern = PartialFunction[Seq[String], (String, Map[String, String])]
