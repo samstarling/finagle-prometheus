@@ -5,14 +5,14 @@ import io.prometheus.client.{CollectorRegistry, Summary, Counter => PCounter, Ga
 import scala.collection.concurrent.TrieMap
 
 class PrometheusStatsReceiver(registry: CollectorRegistry,
-                              namespace: String) extends StatsReceiver {
+                              namespace: String = "finagle") extends StatsReceiver {
 
   private val counters = TrieMap.empty[String, PCounter]
   private val summaries = TrieMap.empty[String, Summary]
   private val gauges = TrieMap.empty[String, PGauge]
 
   // TODO: Map name (Seq[String]) to a meaningful help string
-  private val helpMessage = "Help is not currently available"
+  private val helpMessage = "Refer to https://twitter.github.io/finagle/guide/Metrics.html"
 
   override def repr: AnyRef = this
 
@@ -58,6 +58,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
       .namespace(namespace)
       .name(metricName)
       .labelNames(labelNames: _*)
+      .quantile(0.0, 0.0001)
       .quantile(0.5, 0.0001)
       .quantile(0.9, 0.0001)
       .quantile(0.95, 0.0001)
@@ -101,11 +102,17 @@ object DefaultMetricPatterns {
   }
 
   val PerHost: Pattern = {
+    case Seq("host", label, host, "failures", failure) =>
+      (s"perHost_failures", Map(prometheusLabelForLabel -> label, "host" -> host, "class" -> failure))
     case "host" +: label +: host +: metrics =>
-      (s"host_${sanitizeName(metrics)}", Map(prometheusLabelForLabel -> label, "host" -> host))
+      (s"perHost_${sanitizeName(metrics)}", Map(prometheusLabelForLabel -> label, "host" -> host))
   }
 
   val Core: Pattern = {
+    case Seq(label, "failures", exceptionName) =>
+      ("failures_perException", Map(prometheusLabelForLabel -> label, "class" -> exceptionName))
+    case Seq(label, "sourcedfailures", sourceService, exceptionName) =>
+      ("failures_perException", Map(prometheusLabelForLabel -> label, "sourceService" -> sourceService, "class" -> exceptionName))
     case Seq(label, metric) =>
       (metric, Map(prometheusLabelForLabel -> label))
   }
