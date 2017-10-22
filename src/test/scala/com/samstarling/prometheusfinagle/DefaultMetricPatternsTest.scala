@@ -1,7 +1,5 @@
 package com.samstarling.prometheusfinagle
 
-import org.specs2.mutable.Specification
-
 class DefaultMetricPatternsTest extends UnitTest {
 
   "DefaultMetricPatternsTest" should {
@@ -73,9 +71,10 @@ class DefaultMetricPatternsTest extends UnitTest {
         Seq("api.github.com:/emojis:GET", "http", "time", "200"),
         Seq("api.github.com:/emojis:GET", "http", "time", "2XX")
       )
-      println(finagleMetrics.filterNot(DefaultMetricPatterns.All.isDefinedAt))
 
-      (DefaultMetricPatterns.All.isDefinedAt(_:Seq[String]) must beTrue).foreach(finagleMetrics)
+      (DefaultMetricPatterns.All.isDefinedAt(_:Seq[String]) must beTrue)
+        .foreach(finagleMetrics)
+        .setMessage(finagleMetrics.filterNot(DefaultMetricPatterns.All.isDefinedAt).mkString)
     }
 
   }
