@@ -25,7 +25,8 @@ libraryDependencies ++= Seq(
 lazy val core = (project in file("."))
   .settings(commonSettings: _*)
   .settings(coverageEnabled := true,
-            coverallsTokenFile := Some("src/test/resources/coveralls-key.txt"))
+            coverallsTokenFile := Some("src/test/resources/coveralls-key.txt"),
+            releaseCrossBuild := true)
 
 lazy val examples = (project in file("examples"))
   .settings(commonSettings: _*)
