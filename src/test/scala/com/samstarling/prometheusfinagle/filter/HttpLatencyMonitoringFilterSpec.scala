@@ -38,7 +38,7 @@ class HttpLatencyMonitoringFilterSpec extends UnitTest {
     service.apply(request) returns Future.value(serviceResponse)
   }
 
-  "HttpMonitoringFilter" >> {
+  "HttpLatencyMonitoringFilter" >> {
     "passes requests on to the next service" in new Context {
       Await.result(filter.apply(request, service))
       there was one(service).apply(request)
