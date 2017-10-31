@@ -18,10 +18,19 @@ class DefaultMetricPatternsTest extends UnitTest {
         Seq("api.github.com:/emojis:GET", "loadbalancer", "removes"),
         Seq("api.github.com:/emojis:GET", "loadbalancer", "rebuilds"),
         Seq("api.github.com:/emojis:GET", "loadbalancer", "updates"),
-        Seq("api.github.com:/emojis:GET", "loadbalancer", "max_effort_exhausted"),
-        Seq("api.github.com:/emojis:GET", "loadbalancer", "algorithm", "p2c_least_loaded"),
-        Seq("api.github.com:/emojis:GET", "service_creation", "service_acquisition_latency_ms"),
-        Seq("api.github.com:/emojis:GET", "nack_admission_control", "dropped_requests"),
+        Seq("api.github.com:/emojis:GET",
+            "loadbalancer",
+            "max_effort_exhausted"),
+        Seq("api.github.com:/emojis:GET",
+            "loadbalancer",
+            "algorithm",
+            "p2c_least_loaded"),
+        Seq("api.github.com:/emojis:GET",
+            "service_creation",
+            "service_acquisition_latency_ms"),
+        Seq("api.github.com:/emojis:GET",
+            "nack_admission_control",
+            "dropped_requests"),
         Seq("api.github.com:/emojis:GET", "retries", "requeues"),
         Seq("api.github.com:/emojis:GET", "retries", "requeues"),
         Seq("api.github.com:/emojis:GET", "retries", "budget_exhausted"),
@@ -72,9 +81,12 @@ class DefaultMetricPatternsTest extends UnitTest {
         Seq("api.github.com:/emojis:GET", "http", "time", "2XX")
       )
 
-      (DefaultMetricPatterns.All.isDefinedAt(_:Seq[String]) must beTrue)
+      (DefaultMetricPatterns.All.isDefinedAt(_: Seq[String]) must beTrue)
         .foreach(finagleMetrics)
-        .setMessage(finagleMetrics.filterNot(DefaultMetricPatterns.All.isDefinedAt).mkString)
+        .setMessage(
+          finagleMetrics
+            .filterNot(DefaultMetricPatterns.All.isDefinedAt)
+            .mkString)
     }
 
   }

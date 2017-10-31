@@ -8,7 +8,8 @@ import com.twitter.util.Future
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 
-class MetricsService(registry: CollectorRegistry) extends Service[Request, Response] {
+class MetricsService(registry: CollectorRegistry)
+    extends Service[Request, Response] {
 
   override def apply(request: Request): Future[Response] = {
     val writer = new StringWriter
