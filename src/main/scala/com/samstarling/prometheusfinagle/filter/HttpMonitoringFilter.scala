@@ -6,8 +6,9 @@ import com.twitter.finagle.{Service, SimpleFilter}
 import com.twitter.util.Future
 
 class HttpMonitoringFilter(telemetry: Telemetry,
-                           labeller: HttpServiceLabeller = new HttpServiceLabeller)
-  extends SimpleFilter[Request, Response] {
+                           labeller: HttpServiceLabeller =
+                             new HttpServiceLabeller)
+    extends SimpleFilter[Request, Response] {
 
   private val counter = telemetry.counter(
     name = "incoming_http_requests_total",
@@ -15,7 +16,8 @@ class HttpMonitoringFilter(telemetry: Telemetry,
     labelNames = labeller.keys
   )
 
-  override def apply(request: Request, service: Service[Request, Response]): Future[Response] = {
+  override def apply(request: Request,
+                     service: Service[Request, Response]): Future[Response] = {
     service(request) onSuccess { response =>
       counter.labels(labeller.labelsFor(request, response): _*).inc()
     }

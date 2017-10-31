@@ -9,6 +9,7 @@ trait UnitTest extends Specification with Mockito {
 
   class TestLabeller extends HttpServiceLabeller {
     override val keys: List[String] = List("foo")
-    override def labelsFor(request: Request, response: Response): List[String] = List("bar")
+    override def labelsFor(request: Request, response: Response): List[String] =
+      List("bar")
   }
 }

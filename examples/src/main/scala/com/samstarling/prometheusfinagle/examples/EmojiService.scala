@@ -6,7 +6,8 @@ import com.twitter.finagle.loadbalancer.LoadBalancerFactory
 import com.twitter.finagle.stats.{DefaultStatsReceiver, StatsReceiver}
 import com.twitter.util.Future
 
-class EmojiService(statsReceiver: StatsReceiver) extends Service[Request, Response] {
+class EmojiService(statsReceiver: StatsReceiver)
+    extends Service[Request, Response] {
 
   private val client = Http.client
     .withTls("api.github.com")

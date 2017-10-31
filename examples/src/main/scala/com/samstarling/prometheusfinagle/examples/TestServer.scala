@@ -22,12 +22,13 @@ object TestServer extends App {
   val emojiService = new EmojiService(statsReceiver)
   val metricsService = new MetricsService(registry)
 
-  val router: Service[Request, Response] = RoutingService.byMethodAndPathObject {
-    case (Method.Get, Root / "emoji") => emojiService
-    case (Method.Get, Root / "metrics") => metricsService
-    case (Method.Get, Root / "echo") => new EchoService
-    case _ => new NotFoundService
-  }
+  val router: Service[Request, Response] =
+    RoutingService.byMethodAndPathObject {
+      case (Method.Get, Root / "emoji")   => emojiService
+      case (Method.Get, Root / "metrics") => metricsService
+      case (Method.Get, Root / "echo")    => new EchoService
+      case _                              => new NotFoundService
+    }
 
   ServerBuilder()
     .stack(Http.server)

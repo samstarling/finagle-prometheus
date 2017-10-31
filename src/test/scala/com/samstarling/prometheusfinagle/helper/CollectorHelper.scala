@@ -1,14 +1,13 @@
 package com.samstarling.prometheusfinagle.helper
 
-import io.prometheus.client.Collector.MetricFamilySamples.{
-  Sample => PrometheusSample
-}
+import io.prometheus.client.Collector.MetricFamilySamples.{Sample => PrometheusSample}
 import io.prometheus.client.{Collector, Counter, Gauge, Histogram}
 
 import scala.collection.JavaConverters._
 
 object CollectorHelper {
-  def firstMetricFor(counter: Counter): Option[Collector.MetricFamilySamples] = {
+  def firstMetricFor(
+      counter: Counter): Option[Collector.MetricFamilySamples] = {
     counter.collect().asScala.toList.headOption
   }
 
