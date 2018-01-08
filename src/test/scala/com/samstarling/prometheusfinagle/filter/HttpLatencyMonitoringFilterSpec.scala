@@ -71,22 +71,28 @@ class HttpLatencyMonitoringFilterSpec extends UnitTest {
       Await.result(filter.apply(request, slowService))
 
       // Our request takes ~1500ms, so it should NOT fall into the "less than or equal to 1 second" bucket (le=0.5)
-      registryHelper.samples
-        .get("test_incoming_http_request_latency_seconds_bucket")
-        .flatMap(_.find(_.dimensions.get("le").contains("1.0")))
-        .map(_.value) ==== Some(0.0)
+      s"${registryHelper.samples}" ==> (
+        registryHelper.samples
+          .get("test_incoming_http_request_latency_seconds_bucket")
+          .flatMap(_.find(_.dimensions.get("le").contains("1.0")))
+          .map(_.value) ==== Some(0.0)
+      )
 
       // However, it should fall into the "less than or equal to 2 seconds" bucket (le=0.5)
-      registryHelper.samples
-        .get("test_incoming_http_request_latency_seconds_bucket")
-        .flatMap(_.find(_.dimensions.get("le").contains("2.0")))
-        .map(_.value) ==== Some(1.0)
+      s"${registryHelper.samples}" ==> (
+        registryHelper.samples
+          .get("test_incoming_http_request_latency_seconds_bucket")
+          .flatMap(_.find(_.dimensions.get("le").contains("2.0")))
+          .map(_.value) ==== Some(1.0)
+      )
 
       // It should also fall into the "+Inf" bucket
-      registryHelper.samples
-        .get("test_incoming_http_request_latency_seconds_bucket")
-        .flatMap(_.find(_.dimensions.get("le").contains("+Inf")))
-        .map(_.value) ==== Some(1.0)
+      s"${registryHelper.samples}" ==> (
+        registryHelper.samples
+          .get("test_incoming_http_request_latency_seconds_bucket")
+          .flatMap(_.find(_.dimensions.get("le").contains("+Inf")))
+          .map(_.value) ==== Some(1.0)
+      )
     }
   }
 }
