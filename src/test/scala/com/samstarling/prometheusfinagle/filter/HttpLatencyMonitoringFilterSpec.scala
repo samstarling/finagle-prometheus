@@ -52,11 +52,9 @@ class HttpLatencyMonitoringFilterSpec extends UnitTest {
     "counts the request" in new Context {
       Await.result(filter.apply(request, slowService))
 
-      s"${registryHelper.samples}" ==> (
-        registryHelper.samples
-          .get("test_incoming_http_request_latency_seconds_count")
-          .map(_.map(_.value).sum) ==== Some(1.0)
-      )
+      registryHelper.samples
+        .get("test_incoming_http_request_latency_seconds_count")
+        .map(_.map(_.value).sum) must beSome(1.0).eventually
     }
 
     "increments the counter with the labels from the labeller" in new Context {
@@ -64,35 +62,29 @@ class HttpLatencyMonitoringFilterSpec extends UnitTest {
 
       registryHelper.samples
         .get("test_incoming_http_request_latency_seconds_count")
-        .map(_.head.dimensions.get("foo").get) ==== Some("bar")
+        .map(_.head.dimensions.get("foo").get) must beSome("bar").eventually
     }
 
     "categorises requests into the correct bucket" in new Context {
       Await.result(filter.apply(request, slowService))
 
       // Our request takes ~1500ms, so it should NOT fall into the "less than or equal to 1 second" bucket (le=0.5)
-      s"${registryHelper.samples}" ==> (
-        registryHelper.samples
-          .get("test_incoming_http_request_latency_seconds_bucket")
-          .flatMap(_.find(_.dimensions.get("le").contains("1.0")))
-          .map(_.value) ==== Some(0.0)
-      )
+      registryHelper.samples
+        .get("test_incoming_http_request_latency_seconds_bucket")
+        .flatMap(_.find(_.dimensions.get("le").contains("1.0")))
+        .map(_.value) must beSome(0.0).eventually
 
       // However, it should fall into the "less than or equal to 2 seconds" bucket (le=0.5)
-      s"${registryHelper.samples}" ==> (
-        registryHelper.samples
-          .get("test_incoming_http_request_latency_seconds_bucket")
-          .flatMap(_.find(_.dimensions.get("le").contains("2.0")))
-          .map(_.value) ==== Some(1.0)
-      )
+      registryHelper.samples
+        .get("test_incoming_http_request_latency_seconds_bucket")
+        .flatMap(_.find(_.dimensions.get("le").contains("2.0")))
+        .map(_.value) must beSome(1.0).eventually
 
       // It should also fall into the "+Inf" bucket
-      s"${registryHelper.samples}" ==> (
-        registryHelper.samples
-          .get("test_incoming_http_request_latency_seconds_bucket")
-          .flatMap(_.find(_.dimensions.get("le").contains("+Inf")))
-          .map(_.value) ==== Some(1.0)
-      )
+      registryHelper.samples
+        .get("test_incoming_http_request_latency_seconds_bucket")
+        .flatMap(_.find(_.dimensions.get("le").contains("+Inf")))
+        .map(_.value) must beSome(1.0).eventually
     }
   }
 }
