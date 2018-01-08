@@ -81,6 +81,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
       .quantile(0.99, 0.0001)
       .quantile(0.999, 0.0001)
       .quantile(0.9999, 0.0001)
+      .quantile(1, 0.0001)
       .help(helpMessage)
       .register(registry)
   }
