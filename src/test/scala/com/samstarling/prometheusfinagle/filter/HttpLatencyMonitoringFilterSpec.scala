@@ -52,9 +52,11 @@ class HttpLatencyMonitoringFilterSpec extends UnitTest {
     "counts the request" in new Context {
       Await.result(filter.apply(request, slowService))
 
-      registryHelper.samples
-        .get("test_incoming_http_request_latency_seconds_count")
-        .map(_.map(_.value).sum) ==== Some(1.0)
+      s"${registryHelper.samples}" ==> (
+        registryHelper.samples
+          .get("test_incoming_http_request_latency_seconds_count")
+          .map(_.map(_.value).sum) ==== Some(1.0)
+      )
     }
 
     "increments the counter with the labels from the labeller" in new Context {
