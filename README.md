@@ -16,7 +16,7 @@ The library is available in Maven Central, for both Scala 2.11 and 2.12, so just
 
 This section will explain the three main parts of `finagle-prometheus`. You can see them all working together in the [TestServer](examples/src/main/scala/com/samstarling/prometheusfinagle/examples/TestServer.scala) in the examples directory.
 
-### MetricsService
+### MetricsService
 
 The `MetricsService` class is the most important one. It exposes metrics over HTTP in the format that Prometheus expects when collecting metrics. All it needs is a `CollectorRegistry`:
 
@@ -38,7 +38,13 @@ val registry = CollectorRegistry.defaultRegistry
 val statsReceiver = new PrometheusStatsReceiver(registry)
 ```
 
-To make Finagle use this by default, you'll need to have a file at `resources/META-INF/services/com.twitter.finagle.stats.StatsReceiver` that contains just `com.samstarling.prometheusfinagle.PrometheusStatsReceiver`. The default constructor will be used. This behaviour is documented in [Finagle's Resolver class](https://twitter.github.io/finagle/docs/com/twitter/finagle/Resolver.html), as well as in [the util-stats documentation](https://twitter.github.io/util/guide/util-stats/user_guide.html).
+To make Finagle use this by default, you'll need to have a file at `resources/META-INF/services/com.twitter.finagle.stats.StatsReceiver`. The contents should be:
+
+```
+com.samstarling.prometheusfinagle.PrometheusStatsReceiver
+```
+
+The default constructor for the class will be used. This behaviour is documented in [Finagle's Resolver class](https://twitter.github.io/finagle/docs/com/twitter/finagle/Resolver.html), as well as in [the util-stats documentation](https://twitter.github.io/util/guide/util-stats/user_guide.html).
 
 For full documentation of the metrics exposed, and what they mean, see [the Metrics page on the Finagle documentation site](https://twitter.github.io/finagle/guide/Metrics.html).
 
