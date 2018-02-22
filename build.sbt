@@ -12,10 +12,12 @@ crossScalaVersions := Seq("2.11.11", "2.12.3")
 
 organization := "com.samstarling"
 
+val finagleVersion = "18.2.0"
+
 libraryDependencies ++= Seq(
-  "com.twitter" %% "finagle-core" % "7.1.0",
-  "com.twitter" %% "finagle-http" % "7.1.0",
-  "com.twitter" %% "finagle-stats" % "7.1.0",
+  "com.twitter" %% "finagle-core" % finagleVersion,
+  "com.twitter" %% "finagle-http" % finagleVersion,
+  "com.twitter" %% "finagle-stats" % finagleVersion,
   "io.prometheus" % "simpleclient" % "0.0.26",
   "io.prometheus" % "simpleclient_common" % "0.0.26",
   "org.specs2" %% "specs2-core" % "3.9.5" % "test",
