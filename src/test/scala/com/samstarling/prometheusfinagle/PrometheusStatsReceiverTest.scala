@@ -18,7 +18,8 @@ class PrometheusStatsReceiverTest extends UnitTest {
     }
 
     "be able to be instantiated by newInstance" in {
-      classOf[PrometheusStatsReceiver].newInstance() must not(throwA[NoSuchMethodException])
+      classOf[PrometheusStatsReceiver].newInstance() must not(
+        throwA[NoSuchMethodException])
     }
 
     "allow a registry to be passed" in {
@@ -29,7 +30,8 @@ class PrometheusStatsReceiverTest extends UnitTest {
     "allow a registry and namespace to be passed" in {
       val registry = CollectorRegistry.defaultRegistry
       val namespace = "testnamespace"
-      new PrometheusStatsReceiver(registry, namespace) must not(throwA[RuntimeException])
+      new PrometheusStatsReceiver(registry, namespace) must not(
+        throwA[RuntimeException])
     }
   }
 }
