@@ -4,9 +4,11 @@ import com.twitter.finagle.stats._
 import io.prometheus.client.{CollectorRegistry, Summary, Counter => PCounter, Gauge => PGauge}
 import scala.collection.concurrent.TrieMap
 
-class PrometheusStatsReceiver(registry: CollectorRegistry = CollectorRegistry.defaultRegistry,
-                              namespace: String = "finagle")
+class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String)
     extends StatsReceiver {
+
+  def this() = this(CollectorRegistry.defaultRegistry, "finagle")
+  def this(registry: CollectorRegistry) = this(registry, "finagle")
 
   private val counters = TrieMap.empty[String, PCounter]
   private val summaries = TrieMap.empty[String, Summary]
