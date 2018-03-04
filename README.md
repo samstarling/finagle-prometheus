@@ -12,22 +12,38 @@ The library is available in Maven Central, for both Scala 2.11 and 2.12, so just
 "com.samstarling" %% "finagle-prometheus" % "0.0.4"
 ```
 
-## Usage
+## Custom metrics
 
-This section will explain the three main parts of `finagle-prometheus`. You can see them all working together in the [TestServer](examples/src/main/scala/com/samstarling/prometheusfinagle/examples/TestServer.scala) in the examples directory.
+To expose your own metrics (with labels), use the `Telemetry` class. You can see this in action in the `CustomTelemetryService` example.
+
+```
+val registry = CollectorRegistry.defaultRegistry
+val telemetry = new Telemetry(registry, "namespace")
+
+val counter = telemetry.counter(
+    "requests_by_day_of_week",
+    "Help text",
+    Seq("day_of_week"))
+
+counter.labels(dayOfWeek).inc()
+```
+
+## Existing Finagle metrics
 
 ### MetricsService
 
-The `MetricsService` class is the most important one. It exposes metrics over HTTP in the format that Prometheus expects when collecting metrics. All it needs is a `CollectorRegistry`:
+The `MetricsService` exposes all metrics over HTTP in the format that Prometheus expects when collecting metrics. All it needs is a `CollectorRegistry`:
 
 ```scala
 val registry = CollectorRegistry.defaultRegistry
 val metricsService = new MetricsService(registry)
 ```
 
-You can then mount this service alongside your other HTTP handers, and view metrics.
+You can then mount this service alongside your other HTTP handlers, and view metrics.
 
 ### StatsReceiver
+
+A `StatsReceiver` does what it says on the tin. They are used in various places throughout Finagle,
 
 Finagle exposes a lot of metrics internally. They are reported to a default `StatsReceiver`. You can replace this with the `PrometheusStatsReceiver`, which will transform the Finagle metrics into Prometheus metrics, and register them with the given `CollectorRegistry`.
 
@@ -38,17 +54,15 @@ val registry = CollectorRegistry.defaultRegistry
 val statsReceiver = new PrometheusStatsReceiver(registry)
 ```
 
-To make Finagle use this by default, you'll need to have a file at `resources/META-INF/services/com.twitter.finagle.stats.StatsReceiver`. The contents should be:
+Perhaps the best thing you can do is use the `PrometheusStatsReceiver` by default. To do this, create a file at `resources/META-INF/services/com.twitter.finagle.stats.StatsReceiver`. The contents should be:
 
 ```
 com.samstarling.prometheusfinagle.PrometheusStatsReceiver
 ```
 
-The default constructor for the class will be used. This behaviour is documented in [Finagle's Resolver class](https://twitter.github.io/finagle/docs/com/twitter/finagle/Resolver.html), as well as in [the util-stats documentation](https://twitter.github.io/util/guide/util-stats/user_guide.html).
+The default constructor for the class will be used. This behaviour is documented in [Finagle's Resolver class](https://twitter.github.io/finagle/docs/com/twitter/finagle/Resolver.html), as well as in [the util-stats documentation](https://twitter.github.io/util/guide/util-stats/user_guide.html). For full documentation of the metrics exposed, and what they mean, see [the Metrics page on the Finagle documentation site](https://twitter.github.io/finagle/guide/Metrics.html).
 
-For full documentation of the metrics exposed, and what they mean, see [the Metrics page on the Finagle documentation site](https://twitter.github.io/finagle/guide/Metrics.html).
-
-### Filters
+## Filters
 
 The filters are much less generic. At the moment, they only relate to HTTP, and they expose entirely new metrics. The following filters exist:
 

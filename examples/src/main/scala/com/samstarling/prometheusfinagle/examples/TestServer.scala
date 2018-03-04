@@ -3,7 +3,7 @@ package com.samstarling.prometheusfinagle.examples
 import java.net.InetSocketAddress
 
 import com.samstarling.prometheusfinagle.PrometheusStatsReceiver
-import com.samstarling.prometheusfinagle.metrics.MetricsService
+import com.samstarling.prometheusfinagle.metrics.{MetricsService, Telemetry}
 import com.twitter.finagle.builder.ServerBuilder
 import com.twitter.finagle.http._
 import com.twitter.finagle.http.path._
@@ -18,15 +18,19 @@ object TestServer extends App {
 
   val registry = CollectorRegistry.defaultRegistry
   val statsReceiver = new PrometheusStatsReceiver(registry)
+  val telemetry = new Telemetry(registry, "namespace")
 
   val emojiService = new EmojiService(statsReceiver)
   val metricsService = new MetricsService(registry)
+  val echoService = new EchoService
+  val customTelemetryService = new CustomTelemetryService(telemetry)
 
   val router: Service[Request, Response] =
     RoutingService.byMethodAndPathObject {
       case (Method.Get, Root / "emoji")   => emojiService
       case (Method.Get, Root / "metrics") => metricsService
-      case (Method.Get, Root / "echo")    => new EchoService
+      case (Method.Get, Root / "echo")    => echoService
+      case (Method.Get, Root / "custom")  => customTelemetryService
       case _                              => new NotFoundService
     }
 
