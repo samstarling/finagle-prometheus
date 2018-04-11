@@ -4,15 +4,25 @@ import com.twitter.finagle.stats._
 import io.prometheus.client.{CollectorRegistry, Summary, Counter => PCounter, Gauge => PGauge}
 import scala.collection.concurrent.TrieMap
 
-class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String)
+import com.twitter.finagle.util.DefaultTimer
+import com.twitter.util.{Duration, Timer}
+
+class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, timer: Timer)
     extends StatsReceiver {
 
-  def this() = this(CollectorRegistry.defaultRegistry, "finagle")
-  def this(registry: CollectorRegistry) = this(registry, "finagle")
+  def this() = this(CollectorRegistry.defaultRegistry, "finagle", DefaultTimer.getInstance)
+  def this(registry: CollectorRegistry) = this(registry, "finagle", DefaultTimer.getInstance)
 
-  private val counters = TrieMap.empty[String, PCounter]
-  private val summaries = TrieMap.empty[String, Summary]
-  private val gauges = TrieMap.empty[String, PGauge]
+  protected val counters = TrieMap.empty[String, PCounter]
+  protected val summaries = TrieMap.empty[String, Summary]
+  protected val gauges = TrieMap.empty[String, PGauge]
+  protected val gaugeProviders = TrieMap.empty[String, (() => Float)]
+
+  timer.schedule(Duration.fromSeconds(10)) {
+    gaugeProviders.foreach { case (metricName, provider) =>
+      Option(gauges(metricName)).foreach(_.set(provider()))
+    }
+  }
 
   // TODO: Map name (Seq[String]) to a meaningful help string
   private val helpMessage =
@@ -49,12 +59,13 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String)
   override def addGauge(verbosity: Verbosity, name: String*)(
       f: => Float): Gauge = {
     val (metricName, labels) = extractLabels(name)
+    gaugeProviders.update(metricName, () => f)
     gauges
       .getOrElseUpdate(metricName, newGauge(metricName, labels.keys.toSeq))
       .labels(labels.values.toSeq: _*)
       .set(f)
     new Gauge {
-      override def remove(): Unit = gauges.remove(metricName)
+      override def remove(): Unit = gaugeProviders.remove(metricName)
     }
   }
 

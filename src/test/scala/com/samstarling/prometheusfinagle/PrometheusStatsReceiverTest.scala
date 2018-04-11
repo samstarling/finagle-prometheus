@@ -2,13 +2,14 @@ package com.samstarling.prometheusfinagle
 
 import com.twitter.app.LoadService
 import com.twitter.finagle.stats.StatsReceiver
+import com.twitter.finagle.util.DefaultTimer
 import io.prometheus.client.CollectorRegistry
 
 class PrometheusStatsReceiverTest extends UnitTest {
 
   "PrometheusStatsReceiverTest" should {
     "have a zero-argument constructor" in {
-      new PrometheusStatsReceiver must not(throwA[RuntimeException])
+      new PrometheusStatsReceiver() must not(throwA[RuntimeException])
     }
 
     // This depends on content in test/resources/META-INF/services
@@ -27,10 +28,10 @@ class PrometheusStatsReceiverTest extends UnitTest {
       new PrometheusStatsReceiver(registry) must not(throwA[RuntimeException])
     }
 
-    "allow a registry and namespace to be passed" in {
+    "allow a registry, namespace, and a Timer to be passed" in {
       val registry = CollectorRegistry.defaultRegistry
       val namespace = "testnamespace"
-      new PrometheusStatsReceiver(registry, namespace) must not(
+      new PrometheusStatsReceiver(registry, namespace, DefaultTimer.getInstance) must not(
         throwA[RuntimeException])
     }
   }
