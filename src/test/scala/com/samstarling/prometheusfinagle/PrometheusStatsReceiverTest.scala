@@ -3,6 +3,7 @@ package com.samstarling.prometheusfinagle
 import com.twitter.app.LoadService
 import com.twitter.finagle.stats.StatsReceiver
 import com.twitter.finagle.util.DefaultTimer
+import com.twitter.util.Duration
 import io.prometheus.client.CollectorRegistry
 
 class PrometheusStatsReceiverTest extends UnitTest {
@@ -31,7 +32,7 @@ class PrometheusStatsReceiverTest extends UnitTest {
     "allow a registry, namespace, and a Timer to be passed" in {
       val registry = CollectorRegistry.defaultRegistry
       val namespace = "testnamespace"
-      new PrometheusStatsReceiver(registry, namespace, DefaultTimer.getInstance) must not(
+      new PrometheusStatsReceiver(registry, namespace, DefaultTimer.getInstance, Duration.fromSeconds(1)) must not(
         throwA[RuntimeException])
     }
   }

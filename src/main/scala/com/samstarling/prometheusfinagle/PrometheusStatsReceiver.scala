@@ -5,24 +5,26 @@ import io.prometheus.client.{CollectorRegistry, Summary, Counter => PCounter, Ga
 import scala.collection.concurrent.TrieMap
 
 import com.twitter.finagle.util.DefaultTimer
-import com.twitter.util.{Duration, Timer}
+import com.twitter.util._
 
-class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, timer: Timer)
-    extends StatsReceiver {
+class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, timer: Timer, gaugePollInterval: Duration)
+    extends StatsReceiver with Closable {
 
-  def this() = this(CollectorRegistry.defaultRegistry, "finagle", DefaultTimer.getInstance)
-  def this(registry: CollectorRegistry) = this(registry, "finagle", DefaultTimer.getInstance)
+  def this() = this(CollectorRegistry.defaultRegistry, "finagle", DefaultTimer.getInstance, Duration.fromSeconds(10))
+  def this(registry: CollectorRegistry) = this(registry, "finagle", DefaultTimer.getInstance, Duration.fromSeconds(10))
 
   protected val counters = TrieMap.empty[String, PCounter]
   protected val summaries = TrieMap.empty[String, Summary]
   protected val gauges = TrieMap.empty[String, PGauge]
   protected val gaugeProviders = TrieMap.empty[String, (() => Float)]
 
-  timer.schedule(Duration.fromSeconds(10)) {
+  protected val task = timer.schedule(gaugePollInterval) {
     gaugeProviders.foreach { case (metricName, provider) =>
       Option(gauges(metricName)).foreach(_.set(provider()))
     }
   }
+
+  override def close(deadline: Time): Future[Unit] = task.close(deadline)
 
   // TODO: Map name (Seq[String]) to a meaningful help string
   private val helpMessage =
