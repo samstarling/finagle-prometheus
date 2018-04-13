@@ -8,9 +8,10 @@ import com.twitter.finagle.util.DefaultTimer
 import com.twitter.util._
 
 class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, timer: Timer, gaugePollInterval: Duration)
-    extends StatsReceiver with Closable {
+  extends StatsReceiver with Closable {
 
   def this() = this(CollectorRegistry.defaultRegistry, "finagle", DefaultTimer.getInstance, Duration.fromSeconds(10))
+
   def this(registry: CollectorRegistry) = this(registry, "finagle", DefaultTimer.getInstance, Duration.fromSeconds(10))
 
   protected val counters = TrieMap.empty[String, PCounter]
@@ -34,38 +35,37 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, ti
 
   override def counter(verbosity: Verbosity, name: String*): Counter = {
     val (metricName, labels) = extractLabels(name)
+    val c = counters
+      .getOrElseUpdate(metricName, newCounter(metricName, labels.keys.toSeq))
+      .labels(labels.values.toSeq: _*)
+
     new Counter {
       override def incr(delta: Long): Unit = {
-        counters
-          .getOrElseUpdate(metricName,
-                           newCounter(metricName, labels.keys.toSeq))
-          .labels(labels.values.toSeq: _*)
-          .inc(delta)
+        c.inc(delta)
       }
     }
   }
 
   override def stat(verbosity: Verbosity, name: String*): Stat = {
     val (metricName, labels) = extractLabels(name)
+    val s = summaries
+      .getOrElseUpdate(metricName, newSummary(metricName, labels.keys.toSeq))
+      .labels(labels.values.toSeq: _*)
     new Stat {
       override def add(value: Float): Unit = {
-        summaries
-          .getOrElseUpdate(metricName,
-                           newSummary(metricName, labels.keys.toSeq))
-          .labels(labels.values.toSeq: _*)
-          .observe(value)
+        s.observe(value)
       }
     }
   }
 
   override def addGauge(verbosity: Verbosity, name: String*)(
-      f: => Float): Gauge = {
+    f: => Float): Gauge = {
     val (metricName, labels) = extractLabels(name)
     gaugeProviders.update(metricName, () => f)
     gauges
       .getOrElseUpdate(metricName, newGauge(metricName, labels.keys.toSeq))
       .labels(labels.values.toSeq: _*)
-      .set(f)
+      .set(f)   // Set once initially
     new Gauge {
       override def remove(): Unit = gaugeProviders.remove(metricName)
     }
@@ -113,8 +113,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, ti
 
   def metricPattern: DefaultMetricPatterns.Pattern = DefaultMetricPatterns.All
 
-  protected def extractLabels(
-      name: Seq[String]): (String, Map[String, String]) = {
+  protected def extractLabels(name: Seq[String]): (String, Map[String, String]) = {
     metricPattern.applyOrElse(
       name,
       (x: Seq[String]) => DefaultMetricPatterns.sanitizeName(x) -> Map.empty)
