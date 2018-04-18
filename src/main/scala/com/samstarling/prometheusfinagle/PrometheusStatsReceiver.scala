@@ -4,15 +4,28 @@ import com.twitter.finagle.stats._
 import io.prometheus.client.{CollectorRegistry, Summary, Counter => PCounter, Gauge => PGauge}
 import scala.collection.concurrent.TrieMap
 
-class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String)
-    extends StatsReceiver {
+import com.twitter.finagle.util.DefaultTimer
+import com.twitter.util._
 
-  def this() = this(CollectorRegistry.defaultRegistry, "finagle")
-  def this(registry: CollectorRegistry) = this(registry, "finagle")
+class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, timer: Timer, gaugePollInterval: Duration)
+  extends StatsReceiver with Closable {
 
-  private val counters = TrieMap.empty[String, PCounter]
-  private val summaries = TrieMap.empty[String, Summary]
-  private val gauges = TrieMap.empty[String, PGauge]
+  def this() = this(CollectorRegistry.defaultRegistry, "finagle", DefaultTimer.getInstance, Duration.fromSeconds(10))
+
+  def this(registry: CollectorRegistry) = this(registry, "finagle", DefaultTimer.getInstance, Duration.fromSeconds(10))
+
+  protected val counters = TrieMap.empty[String, PCounter]
+  protected val summaries = TrieMap.empty[String, Summary]
+  protected val gauges = TrieMap.empty[String, PGauge]
+  protected val gaugeProviders = TrieMap.empty[String, (() => Float)]
+
+  protected val task = timer.schedule(gaugePollInterval) {
+    gaugeProviders.foreach { case (metricName, provider) =>
+      Option(gauges(metricName)).foreach(_.set(provider()))
+    }
+  }
+
+  override def close(deadline: Time): Future[Unit] = task.close(deadline)
 
   // TODO: Map name (Seq[String]) to a meaningful help string
   private val helpMessage =
@@ -22,39 +35,39 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String)
 
   override def counter(verbosity: Verbosity, name: String*): Counter = {
     val (metricName, labels) = extractLabels(name)
+    val c = counters
+      .getOrElseUpdate(metricName, newCounter(metricName, labels.keys.toSeq))
+      .labels(labels.values.toSeq: _*)
+
     new Counter {
       override def incr(delta: Long): Unit = {
-        counters
-          .getOrElseUpdate(metricName,
-                           newCounter(metricName, labels.keys.toSeq))
-          .labels(labels.values.toSeq: _*)
-          .inc(delta)
+        c.inc(delta)
       }
     }
   }
 
   override def stat(verbosity: Verbosity, name: String*): Stat = {
     val (metricName, labels) = extractLabels(name)
+    val s = summaries
+      .getOrElseUpdate(metricName, newSummary(metricName, labels.keys.toSeq))
+      .labels(labels.values.toSeq: _*)
     new Stat {
       override def add(value: Float): Unit = {
-        summaries
-          .getOrElseUpdate(metricName,
-                           newSummary(metricName, labels.keys.toSeq))
-          .labels(labels.values.toSeq: _*)
-          .observe(value)
+        s.observe(value)
       }
     }
   }
 
   override def addGauge(verbosity: Verbosity, name: String*)(
-      f: => Float): Gauge = {
+    f: => Float): Gauge = {
     val (metricName, labels) = extractLabels(name)
+    gaugeProviders.update(metricName, () => f)
     gauges
       .getOrElseUpdate(metricName, newGauge(metricName, labels.keys.toSeq))
       .labels(labels.values.toSeq: _*)
-      .set(f)
+      .set(f)   // Set once initially
     new Gauge {
-      override def remove(): Unit = gauges.remove(metricName)
+      override def remove(): Unit = gaugeProviders.remove(metricName)
     }
   }
 
@@ -100,8 +113,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String)
 
   def metricPattern: DefaultMetricPatterns.Pattern = DefaultMetricPatterns.All
 
-  protected def extractLabels(
-      name: Seq[String]): (String, Map[String, String]) = {
+  protected def extractLabels(name: Seq[String]): (String, Map[String, String]) = {
     metricPattern.applyOrElse(
       name,
       (x: Seq[String]) => DefaultMetricPatterns.sanitizeName(x) -> Map.empty)
