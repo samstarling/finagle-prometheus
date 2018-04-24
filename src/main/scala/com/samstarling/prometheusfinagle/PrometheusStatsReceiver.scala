@@ -17,11 +17,12 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, ti
   protected val counters = TrieMap.empty[String, PCounter]
   protected val summaries = TrieMap.empty[String, Summary]
   protected val gauges = TrieMap.empty[String, PGauge]
-  protected val gaugeProviders = TrieMap.empty[String, (() => Float)]
+  protected val gaugeChilds = TrieMap.empty[(String, Seq[String]), PGauge.Child]
+  protected val gaugeProviders = TrieMap.empty[(String, Seq[String]), (() => Float)]
 
   protected val task = timer.schedule(gaugePollInterval) {
-    gaugeProviders.foreach { case (metricName, provider) =>
-      Option(gauges(metricName)).foreach(_.set(provider()))
+    gaugeProviders.foreach { case (childGaugeKey, provider) =>
+      gaugeChilds.get(childGaugeKey).foreach(_.set(provider()))
     }
   }
 
@@ -36,7 +37,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, ti
   override def counter(verbosity: Verbosity, name: String*): Counter = {
     val (metricName, labels) = extractLabels(name)
     val c = counters
-      .getOrElseUpdate(metricName, newCounter(metricName, labels.keys.toSeq))
+      .getOrElseUpdate(metricName, this.synchronized { newCounter(metricName, labels.keys.toSeq) })
       .labels(labels.values.toSeq: _*)
 
     new Counter {
@@ -49,8 +50,9 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, ti
   override def stat(verbosity: Verbosity, name: String*): Stat = {
     val (metricName, labels) = extractLabels(name)
     val s = summaries
-      .getOrElseUpdate(metricName, newSummary(metricName, labels.keys.toSeq))
+      .getOrElseUpdate(metricName, this.synchronized { newSummary(metricName, labels.keys.toSeq) })
       .labels(labels.values.toSeq: _*)
+
     new Stat {
       override def add(value: Float): Unit = {
         s.observe(value)
@@ -59,15 +61,17 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, ti
   }
 
   override def addGauge(verbosity: Verbosity, name: String*)(
-    f: => Float): Gauge = {
+                        f: => Float): Gauge = {
     val (metricName, labels) = extractLabels(name)
-    gaugeProviders.update(metricName, () => f)
     gauges
-      .getOrElseUpdate(metricName, newGauge(metricName, labels.keys.toSeq))
-      .labels(labels.values.toSeq: _*)
+      .getOrElseUpdate(metricName, this.synchronized { newGauge(metricName, labels.keys.toSeq) })
+    val labelValues = labels.values.toSeq
+    gaugeChilds
+      .getOrElseUpdate((metricName, labelValues), this.synchronized { gauges(metricName).labels(labelValues: _*) })
       .set(f)   // Set once initially
+    gaugeProviders.update((metricName, labelValues), () => f)
     new Gauge {
-      override def remove(): Unit = gaugeProviders.remove(metricName)
+      override def remove(): Unit = gaugeProviders.remove((metricName, labelValues))
     }
   }
 
