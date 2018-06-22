@@ -36,40 +36,49 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, ti
 
   override def counter(verbosity: Verbosity, name: String*): Counter = {
     val (metricName, labels) = extractLabels(name)
-    val c = counters
-      .getOrElseUpdate(metricName, this.synchronized { newCounter(metricName, labels.keys.toSeq) })
-      .labels(labels.values.toSeq: _*)
+    val counter = this.synchronized {
+      counters
+        .getOrElseUpdate(metricName, newCounter(metricName, labels.keys.toSeq))
+        .labels(labels.values.toSeq: _*)
+    }
 
     new Counter {
       override def incr(delta: Long): Unit = {
-        c.inc(delta)
+        counter.inc(delta)
       }
     }
   }
 
   override def stat(verbosity: Verbosity, name: String*): Stat = {
     val (metricName, labels) = extractLabels(name)
-    val s = summaries
+    val summary = summaries
       .getOrElseUpdate(metricName, this.synchronized { newSummary(metricName, labels.keys.toSeq) })
       .labels(labels.values.toSeq: _*)
 
     new Stat {
       override def add(value: Float): Unit = {
-        s.observe(value)
+        summary.observe(value)
       }
     }
   }
 
-  override def addGauge(verbosity: Verbosity, name: String*)(
-                        f: => Float): Gauge = {
+  override def addGauge(verbosity: Verbosity, name: String*)(f: => Float): Gauge = {
     val (metricName, labels) = extractLabels(name)
-    gauges
-      .getOrElseUpdate(metricName, this.synchronized { newGauge(metricName, labels.keys.toSeq) })
     val labelValues = labels.values.toSeq
-    gaugeChilds
-      .getOrElseUpdate((metricName, labelValues), this.synchronized { gauges(metricName).labels(labelValues: _*) })
-      .set(f)   // Set once initially
+
+    this.synchronized {
+      gauges
+        .getOrElseUpdate(metricName, newGauge(metricName, labels.keys.toSeq))
+    }
+
+    this.synchronized {
+      gaugeChilds
+        .getOrElseUpdate((metricName, labelValues), gauges(metricName).labels(labelValues: _*))
+        .set(f)   // Set once initially
+    }
+
     gaugeProviders.update((metricName, labelValues), () => f)
+
     new Gauge {
       override def remove(): Unit = gaugeProviders.remove((metricName, labelValues))
     }

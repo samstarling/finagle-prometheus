@@ -10,11 +10,10 @@ class PrometheusStatsReceiverRaceTest extends UnitTest {
 
   "PrometheusStatsReceiver#counters" should {
 
-
     "handle creating and incrementing concurrently nicely" in {
       val registry = new CollectorRegistry(true)
       val statsReceiver = new PrometheusStatsReceiver(registry).scope("test")
-      val cf: Seq[Future[Unit]] = (1 to threadCount) map { n =>
+      val cf: Seq[Future[Unit]] = (1 to threadCount) map { _ =>
         pool {
           statsReceiver.counter("my_counter").incr(1)
         }
@@ -39,19 +38,15 @@ class PrometheusStatsReceiverRaceTest extends UnitTest {
       Await.result(joinedFutures, Duration(100, TimeUnit.MILLISECONDS))
       registry.getSampleValue("finagle_my_counter", Array("serviceName"), Array("test")) === threadCount
     }
-
-
   }
 
   "PrometheusStatsReceiver#counters#Gauges" should {
-
-
     "reflect gauge value after creation" in {
       val registry = new CollectorRegistry(true)
       val mockTimer = new MockTimer
       val statsReceiver = new PrometheusStatsReceiver(registry, "finagle", mockTimer, Duration(10, TimeUnit.SECONDS)).scope("test")
 
-      Time.withCurrentTimeFrozen { timeCtl =>
+      Time.withCurrentTimeFrozen { _ =>
         var gaugeResult = 42
         statsReceiver.addGauge("my_gauge") {
           gaugeResult
@@ -98,6 +93,5 @@ class PrometheusStatsReceiverRaceTest extends UnitTest {
         registry.getSampleValue("finagle_my_gauge", Array("serviceName"), Array("test")) === 8
       }
     }
-
   }
 }
