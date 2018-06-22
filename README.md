@@ -9,7 +9,7 @@
 The library is available in Maven Central, for both Scala 2.11 and 2.12, so just add the following dependency:
 
 ```
-"com.samstarling" %% "finagle-prometheus" % "0.0.4"
+"com.samstarling" %% "finagle-prometheus" % "0.0.8"
 ```
 
 ## Usage
