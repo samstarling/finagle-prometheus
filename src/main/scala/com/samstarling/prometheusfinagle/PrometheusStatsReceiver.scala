@@ -51,9 +51,11 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, ti
 
   override def stat(verbosity: Verbosity, name: String*): Stat = {
     val (metricName, labels) = extractLabels(name)
-    val summary = summaries
-      .getOrElseUpdate(metricName, this.synchronized { newSummary(metricName, labels.keys.toSeq) })
-      .labels(labels.values.toSeq: _*)
+    val summary = this.synchronized {
+      summaries
+        .getOrElseUpdate(metricName,  newSummary(metricName, labels.keys.toSeq) )
+        .labels(labels.values.toSeq: _*)
+    }
 
     new Stat {
       override def add(value: Float): Unit = {
