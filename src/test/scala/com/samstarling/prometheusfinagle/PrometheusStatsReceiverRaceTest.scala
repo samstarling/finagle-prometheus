@@ -40,6 +40,23 @@ class PrometheusStatsReceiverRaceTest extends UnitTest {
     }
   }
 
+  "PrometheusStatsReceiver#stats" should {
+
+    "handle creating and adding concurrently nicely" in {
+      val registry = new CollectorRegistry(true)
+      val statsReceiver = new PrometheusStatsReceiver(registry).scope("test")
+      val cf: Seq[Future[Unit]] = (1 to threadCount) map { _ =>
+        pool {
+          statsReceiver.stat("my_stat").add(1.0f)
+        }
+      }
+      val joinedFutures = Future.collect(cf)
+
+      Await.result(joinedFutures, Duration(100, TimeUnit.MILLISECONDS))
+      registry.getSampleValue("finagle_my_stat_count", Array("serviceName"), Array("test")) === threadCount
+    }
+  }
+
   "PrometheusStatsReceiver#counters#Gauges" should {
     "reflect gauge value after creation" in {
       val registry = new CollectorRegistry(true)
