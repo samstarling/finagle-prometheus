@@ -8,7 +8,7 @@ import com.twitter.finagle.util.DefaultTimer
 import com.twitter.util._
 
 private object CustomDefaultTimer {
-  def getInstance: Timer = Option(DefaultTimer.getInstance).getOrElse(new JavaTimer())
+  def getInstance: Timer = Option(DefaultTimer.getInstance).getOrElse(new JavaTimer(isDaemon = true))
 }
 
 class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, timer: Timer, gaugePollInterval: Duration)
