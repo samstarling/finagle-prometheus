@@ -7,12 +7,16 @@ import scala.collection.concurrent.TrieMap
 import com.twitter.finagle.util.DefaultTimer
 import com.twitter.util._
 
+private object CustomDefaultTimer {
+  def getInstance: Timer = Option(DefaultTimer.getInstance).getOrElse(new JavaTimer(isDaemon = true))
+}
+
 class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, timer: Timer, gaugePollInterval: Duration)
   extends StatsReceiver with Closable {
 
-  def this() = this(CollectorRegistry.defaultRegistry, "finagle", DefaultTimer.getInstance, Duration.fromSeconds(10))
+  def this() = this(CollectorRegistry.defaultRegistry, "finagle", CustomDefaultTimer.getInstance, Duration.fromSeconds(10))
 
-  def this(registry: CollectorRegistry) = this(registry, "finagle", DefaultTimer.getInstance, Duration.fromSeconds(10))
+  def this(registry: CollectorRegistry) = this(registry, "finagle", CustomDefaultTimer.getInstance, Duration.fromSeconds(10))
 
   protected val counters = TrieMap.empty[String, PCounter]
   protected val summaries = TrieMap.empty[String, Summary]
