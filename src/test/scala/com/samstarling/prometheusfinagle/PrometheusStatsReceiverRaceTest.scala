@@ -9,6 +9,7 @@ import com.twitter.finagle.stats.Gauge
 class PrometheusStatsReceiverRaceTest extends UnitTest {
   val threadCount = 100
   val pool = FuturePool.unboundedPool
+  val awaitDuration = Duration(500, TimeUnit.MILLISECONDS)
 
   "PrometheusStatsReceiver#counters" should {
     "handle creating and incrementing concurrently nicely" in {
@@ -21,7 +22,7 @@ class PrometheusStatsReceiverRaceTest extends UnitTest {
       }
       val joinedFutures = Future.collect(cf)
 
-      Await.result(joinedFutures, Duration(100, TimeUnit.MILLISECONDS))
+      Await.result(joinedFutures, awaitDuration)
       registry.getSampleValue("finagle_my_counter", Array("serviceName"), Array("test")) === threadCount
     }
 
@@ -36,7 +37,7 @@ class PrometheusStatsReceiverRaceTest extends UnitTest {
       }
       val joinedFutures = Future.collect(cf)
 
-      Await.result(joinedFutures, Duration(100, TimeUnit.MILLISECONDS))
+      Await.result(joinedFutures, awaitDuration)
       registry.getSampleValue("finagle_my_counter", Array("serviceName"), Array("test")) === threadCount
     }
   }
@@ -52,7 +53,7 @@ class PrometheusStatsReceiverRaceTest extends UnitTest {
       }
       val joinedFutures = Future.collect(cf)
 
-      Await.result(joinedFutures, Duration(100, TimeUnit.MILLISECONDS))
+      Await.result(joinedFutures, awaitDuration)
       registry.getSampleValue("finagle_my_stat_count", Array("serviceName"), Array("test")) === threadCount
     }
   }
@@ -68,7 +69,7 @@ class PrometheusStatsReceiverRaceTest extends UnitTest {
       }
       val joinedFutures = Future.collect(cf)
 
-      Await.result(joinedFutures, Duration(100, TimeUnit.MILLISECONDS))
+      Await.result(joinedFutures, awaitDuration)
       registry.getSampleValue("finagle_my_gauge", Array("serviceName"), Array("test")) === 123.0f
     }
 
