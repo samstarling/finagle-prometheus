@@ -4,12 +4,13 @@ import com.twitter.util.{Await, Duration, Future, FuturePool, MockTimer, Time}
 import io.prometheus.client.CollectorRegistry
 import java.util.concurrent.TimeUnit
 
+import com.twitter.finagle.stats.Gauge
+
 class PrometheusStatsReceiverRaceTest extends UnitTest {
   val threadCount = 100
   val pool = FuturePool.unboundedPool
 
   "PrometheusStatsReceiver#counters" should {
-
     "handle creating and incrementing concurrently nicely" in {
       val registry = new CollectorRegistry(true)
       val statsReceiver = new PrometheusStatsReceiver(registry).scope("test")
@@ -41,7 +42,6 @@ class PrometheusStatsReceiverRaceTest extends UnitTest {
   }
 
   "PrometheusStatsReceiver#stats" should {
-
     "handle creating and adding concurrently nicely" in {
       val registry = new CollectorRegistry(true)
       val statsReceiver = new PrometheusStatsReceiver(registry).scope("test")
@@ -57,7 +57,21 @@ class PrometheusStatsReceiverRaceTest extends UnitTest {
     }
   }
 
-  "PrometheusStatsReceiver#counters#Gauges" should {
+  "PrometheusStatsReceiver#gauges" should {
+    "handle creating and adding concurrently nicely" in {
+      val registry = new CollectorRegistry(true)
+      val statsReceiver = new PrometheusStatsReceiver(registry).scope("test")
+      val cf: Seq[Future[Gauge]] = (1 to threadCount) map { _ =>
+        pool {
+          statsReceiver.addGauge("my_gauge") { 123.0f }
+        }
+      }
+      val joinedFutures = Future.collect(cf)
+
+      Await.result(joinedFutures, Duration(100, TimeUnit.MILLISECONDS))
+      registry.getSampleValue("finagle_my_gauge", Array("serviceName"), Array("test")) === 123.0f
+    }
+
     "reflect gauge value after creation" in {
       val registry = new CollectorRegistry(true)
       val mockTimer = new MockTimer
