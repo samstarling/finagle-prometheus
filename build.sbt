@@ -18,10 +18,10 @@ libraryDependencies ++= Seq(
   "com.twitter" %% "finagle-core" % finagleVersion,
   "com.twitter" %% "finagle-http" % finagleVersion,
   "com.twitter" %% "finagle-stats" % finagleVersion,
-  "io.prometheus" % "simpleclient" % "0.0.26",
-  "io.prometheus" % "simpleclient_common" % "0.0.26",
-  "org.specs2" %% "specs2-core" % "3.9.5" % "test",
-  "org.specs2" %% "specs2-mock" % "3.9.5" % "test"
+  "io.prometheus" % "simpleclient" % "0.5.0",
+  "io.prometheus" % "simpleclient_common" % "0.5.0",
+  "org.specs2" %% "specs2-core" % "4.3.3" % "test",
+  "org.specs2" %% "specs2-mock" % "4.3.3" % "test"
 )
 
 parallelExecution in Test := true
