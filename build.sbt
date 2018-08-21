@@ -24,6 +24,8 @@ libraryDependencies ++= Seq(
   "org.specs2" %% "specs2-mock" % "3.9.5" % "test"
 )
 
+parallelExecution in Test := true
+
 lazy val core = (project in file("."))
   .settings(commonSettings: _*)
   .settings(coverageEnabled := false,
