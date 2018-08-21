@@ -25,6 +25,7 @@ libraryDependencies ++= Seq(
 )
 
 parallelExecution in Test := true
+parallelExecution in ThisBuild := false
 
 lazy val core = (project in file("."))
   .settings(commonSettings: _*)
