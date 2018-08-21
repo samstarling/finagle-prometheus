@@ -6,22 +6,36 @@ import scala.collection.concurrent.TrieMap
 import com.twitter.finagle.util.HashedWheelTimer
 import com.twitter.util._
 
-class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, timer: Timer, gaugePollInterval: Duration)
-  extends StatsReceiver with Closable {
+class PrometheusStatsReceiver(registry: CollectorRegistry,
+                              namespace: String,
+                              timer: Timer,
+                              gaugePollInterval: Duration)
+    extends StatsReceiver
+    with Closable {
 
-  def this() = this(CollectorRegistry.defaultRegistry, "finagle", HashedWheelTimer.Default, Duration.fromSeconds(10))
+  def this() =
+    this(CollectorRegistry.defaultRegistry,
+         "finagle",
+         HashedWheelTimer.Default,
+         Duration.fromSeconds(10))
 
-  def this(registry: CollectorRegistry) = this(registry, "finagle", HashedWheelTimer.Default, Duration.fromSeconds(10))
+  def this(registry: CollectorRegistry) =
+    this(registry,
+         "finagle",
+         HashedWheelTimer.Default,
+         Duration.fromSeconds(10))
 
   protected val counters = TrieMap.empty[String, PCounter]
   protected val summaries = TrieMap.empty[String, Summary]
   protected val gauges = TrieMap.empty[String, PGauge]
   protected val gaugeChilds = TrieMap.empty[(String, Seq[String]), PGauge.Child]
-  protected val gaugeProviders = TrieMap.empty[(String, Seq[String]), (() => Float)]
+  protected val gaugeProviders =
+    TrieMap.empty[(String, Seq[String]), (() => Float)]
 
   protected val task = timer.schedule(gaugePollInterval) {
-    gaugeProviders.foreach { case (childGaugeKey, provider) =>
-      gaugeChilds.get(childGaugeKey).foreach(_.set(provider()))
+    gaugeProviders.foreach {
+      case (childGaugeKey, provider) =>
+        gaugeChilds.get(childGaugeKey).foreach(_.set(provider()))
     }
   }
 
@@ -52,7 +66,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, ti
     val (metricName, labels) = extractLabels(name)
     val summary = this.synchronized {
       summaries
-        .getOrElseUpdate(metricName,  newSummary(metricName, labels.keys.toSeq) )
+        .getOrElseUpdate(metricName, newSummary(metricName, labels.keys.toSeq))
         .labels(labels.values.toSeq: _*)
     }
 
@@ -63,7 +77,8 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, ti
     }
   }
 
-  override def addGauge(verbosity: Verbosity, name: String*)(f: => Float): Gauge = {
+  override def addGauge(verbosity: Verbosity, name: String*)(
+      f: => Float): Gauge = {
     val (metricName, labels) = extractLabels(name)
     val labelValues = labels.values.toSeq
 
@@ -74,14 +89,16 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, ti
 
     this.synchronized {
       gaugeChilds
-        .getOrElseUpdate((metricName, labelValues), gauges(metricName).labels(labelValues: _*))
-        .set(f)   // Set once initially
+        .getOrElseUpdate((metricName, labelValues),
+                         gauges(metricName).labels(labelValues: _*))
+        .set(f) // Set once initially
     }
 
     gaugeProviders.update((metricName, labelValues), () => f)
 
     new Gauge {
-      override def remove(): Unit = gaugeProviders.remove((metricName, labelValues))
+      override def remove(): Unit =
+        gaugeProviders.remove((metricName, labelValues))
     }
   }
 
@@ -127,7 +144,8 @@ class PrometheusStatsReceiver(registry: CollectorRegistry, namespace: String, ti
 
   def metricPattern: DefaultMetricPatterns.Pattern = DefaultMetricPatterns.All
 
-  protected def extractLabels(name: Seq[String]): (String, Map[String, String]) = {
+  protected def extractLabels(
+      name: Seq[String]): (String, Map[String, String]) = {
     metricPattern.applyOrElse(
       name,
       (x: Seq[String]) => DefaultMetricPatterns.sanitizeName(x) -> Map.empty)
