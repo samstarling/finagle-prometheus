@@ -5,7 +5,7 @@ import io.prometheus.client.CollectorRegistry
 import java.util.concurrent.TimeUnit
 
 class PrometheusStatsReceiverRaceTest extends UnitTest {
-  val threadCount = 10
+  val threadCount = 100
   val pool = FuturePool.unboundedPool
 
   "PrometheusStatsReceiver#counters" should {
