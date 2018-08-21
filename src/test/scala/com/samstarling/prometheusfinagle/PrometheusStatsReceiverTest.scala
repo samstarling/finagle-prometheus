@@ -32,7 +32,7 @@ class PrometheusStatsReceiverTest extends UnitTest {
     "allow a registry, namespace, and a Timer to be passed" in {
       val registry = CollectorRegistry.defaultRegistry
       val namespace = "testnamespace"
-      new PrometheusStatsReceiver(registry, namespace, CustomDefaultTimer.getInstance, Duration.fromSeconds(1)) must not(
+      new PrometheusStatsReceiver(registry, namespace, DefaultTimer.twitter, Duration.fromSeconds(1)) must not(
         throwA[RuntimeException])
     }
   }
