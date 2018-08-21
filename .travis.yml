@@ -7,5 +7,3 @@ jdk:
   - oraclejdk8
 script:
   - sbt clean coverage test
-after_success:
-  - sbt coveralls
