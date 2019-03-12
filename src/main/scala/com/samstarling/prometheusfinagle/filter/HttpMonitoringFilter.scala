@@ -6,7 +6,7 @@ import com.twitter.finagle.{Service, SimpleFilter}
 import com.twitter.util.Future
 
 class HttpMonitoringFilter(telemetry: Telemetry,
-                           labeller: HttpServiceLabeller =
+                           labeller: ServiceLabeller[Request, Response] =
                              new HttpServiceLabeller)
     extends SimpleFilter[Request, Response] {
 

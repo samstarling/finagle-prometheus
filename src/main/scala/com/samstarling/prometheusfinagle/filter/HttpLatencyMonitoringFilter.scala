@@ -7,7 +7,7 @@ import com.twitter.util.{Future, Stopwatch}
 
 class HttpLatencyMonitoringFilter(telemetry: Telemetry,
                                   buckets: Seq[Double],
-                                  labeller: ServiceLabeller =
+                                  labeller: ServiceLabeller[Request, Response] =
                                     new HttpServiceLabeller)
     extends SimpleFilter[Request, Response] {
 
