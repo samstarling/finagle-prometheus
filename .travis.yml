@@ -1,9 +1,9 @@
 language: scala
 scala:
-   - 2.11.11
-   - 2.12.6
+  - 2.11.11
+  - 2.12.6
 jdk:
-  - oraclejdk7
   - oraclejdk8
+  - oraclejdk9
 script:
   - sbt clean coverage test
