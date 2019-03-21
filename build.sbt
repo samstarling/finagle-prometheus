@@ -12,7 +12,7 @@ crossScalaVersions := Seq("2.11.11", "2.12.6")
 
 organization := "com.samstarling"
 
-val finagleVersion = "18.8.0"
+val finagleVersion = "19.3.0"
 
 libraryDependencies ++= Seq(
   "com.twitter" %% "finagle-core" % finagleVersion,
