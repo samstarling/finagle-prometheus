@@ -2,9 +2,10 @@ package com.samstarling.prometheusfinagle
 
 import com.twitter.finagle.stats._
 import io.prometheus.client.{CollectorRegistry, Summary, Counter => PCounter, Gauge => PGauge}
+
 import scala.collection.concurrent.TrieMap
-import com.twitter.finagle.util.HashedWheelTimer
 import com.twitter.util._
+import com.twitter.finagle.util.DefaultTimer
 
 class PrometheusStatsReceiver(registry: CollectorRegistry,
                               namespace: String,
@@ -13,16 +14,17 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
     extends StatsReceiver
     with Closable {
 
+
   def this() =
     this(CollectorRegistry.defaultRegistry,
          "finagle",
-         HashedWheelTimer.Default,
+      DefaultTimer,
          Duration.fromSeconds(10))
 
   def this(registry: CollectorRegistry) =
     this(registry,
          "finagle",
-         HashedWheelTimer.Default,
+      DefaultTimer,
          Duration.fromSeconds(10))
 
   protected val counters = TrieMap.empty[String, PCounter]
