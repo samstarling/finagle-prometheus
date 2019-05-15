@@ -18,13 +18,13 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
   def this() =
     this(CollectorRegistry.defaultRegistry,
          "finagle",
-      DefaultTimer,
+      new JavaTimer(true),
          Duration.fromSeconds(10))
 
   def this(registry: CollectorRegistry) =
     this(registry,
          "finagle",
-      DefaultTimer,
+      new JavaTimer(true),
          Duration.fromSeconds(10))
 
   protected val counters = TrieMap.empty[String, PCounter]
