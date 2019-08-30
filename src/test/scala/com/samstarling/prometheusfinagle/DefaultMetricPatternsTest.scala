@@ -89,5 +89,8 @@ class DefaultMetricPatternsTest extends UnitTest {
             .mkString)
     }
 
+    "not be defined for metrics without a parsable prefix" in {
+      DefaultMetricPatterns.All.isDefinedAt(Seq("metric_with_no_prefix")) must beFalse
+    }
   }
 }

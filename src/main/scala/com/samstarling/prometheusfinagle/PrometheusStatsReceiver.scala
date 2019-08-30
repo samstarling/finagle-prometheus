@@ -164,7 +164,7 @@ object DefaultMetricPatterns {
   val prometheusLabelForLabel = "serviceName"
 
   val DefaultMatch: Pattern = {
-    case label +: metrics =>
+    case label +: (metrics @ _ :: _) =>
       (sanitizeName(metrics), Map(prometheusLabelForLabel -> label))
   }
 
