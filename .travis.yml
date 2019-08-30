@@ -3,7 +3,16 @@ scala:
   - 2.11.11
   - 2.12.6
 jdk:
-  - oraclejdk8
   - oraclejdk11
+
+matrix:
+  include:
+    - jdk: oraclejdk8
+      dist: trusty
+      scala: 2.11.11
+    - jdk: oraclejdk8
+      dist: trusty
+      scala: 2.12.6
+
 script:
   - sbt clean coverage test
