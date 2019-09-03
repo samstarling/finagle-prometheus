@@ -39,7 +39,7 @@ class PrometheusStatsReceiverTest extends UnitTest {
         throwA[RuntimeException])
     }
 
-    "allow handle metrics and labels with unsafe characters" in {
+    "allow metrics and labels with unsafe characters" in {
       val registry = CollectorRegistry.defaultRegistry
       val namespace = "test_metric_names_and_labels"
       val statsReceiver = new PrometheusStatsReceiver(registry,
