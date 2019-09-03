@@ -1,7 +1,7 @@
 package com.samstarling.prometheusfinagle
 
 import com.twitter.app.LoadService
-import com.twitter.finagle.stats.StatsReceiver
+import com.twitter.finagle.stats.{StatsReceiver, Verbosity}
 import com.twitter.finagle.util.DefaultTimer
 import com.twitter.util.Duration
 import io.prometheus.client.CollectorRegistry
@@ -37,6 +37,25 @@ class PrometheusStatsReceiverTest extends UnitTest {
                                   DefaultTimer.twitter,
                                   Duration.fromSeconds(1)) must not(
         throwA[RuntimeException])
+    }
+
+    "allow handle metrics and labels with unsafe characters" in {
+      val registry = CollectorRegistry.defaultRegistry
+      val namespace = "test_metric_names_and_labels"
+      val statsReceiver = new PrometheusStatsReceiver(registry,
+                                                      namespace,
+                                                      DefaultTimer.twitter,
+                                                      Duration.fromSeconds(1))
+      val metrics = Seq(
+        Seq("finagle", "build/revision"),
+        Seq("foo/bar", "baz"),
+        Seq("foo/bar", "build/revision"),
+        Seq("foo-bar", "baz"),
+        Seq("finagle", "build-revsion"),
+      )
+      metrics foreach { name =>
+        statsReceiver.stat(Verbosity.Default, name: _*)
+      } must not(throwA[IllegalArgumentException])
     }
   }
 }
