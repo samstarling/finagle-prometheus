@@ -149,7 +149,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
   protected def extractLabels(
       name: Seq[String]): (String, Map[String, String]) = {
     metricPattern.applyOrElse(
-      name,
+      name.map(_.replaceAll("[^\\w]", "_")),
       (x: Seq[String]) => DefaultMetricPatterns.sanitizeName(x) -> Map.empty)
   }
 }
