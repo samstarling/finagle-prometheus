@@ -8,7 +8,7 @@ lazy val commonSettings = Seq(
   licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 )
 
-crossScalaVersions := Seq("2.11.11", "2.12.6")
+// crossScalaVersions := Seq("2.11.11", "2.12.6")
 
 organization := "com.samstarling"
 
