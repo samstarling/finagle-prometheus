@@ -18,7 +18,7 @@ case class CollectorRegistryHelper(registry: CollectorRegistry) {
         s.name -> s
       })
       .groupBy(_._1)
-      .mapValues(_.map(_._2))
+      .mapValues(_.map(_._2)).toMap
   }
 }
 
