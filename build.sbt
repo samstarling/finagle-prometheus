@@ -12,7 +12,7 @@ lazy val commonSettings = Seq(
 
 organization := "com.samstarling"
 
-val finagleVersion = "19.4.0"
+val finagleVersion = "19.12.0"
 
 libraryDependencies ++= Seq(
   "com.twitter" %% "finagle-core" % finagleVersion,
