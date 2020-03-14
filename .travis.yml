@@ -1,7 +1,7 @@
 language: scala
 scala:
-  - 2.11.11
-  - 2.12.6
+  - 2.12.10
+  - 2.13.1
 jdk:
   - oraclejdk11
 
@@ -9,10 +9,10 @@ matrix:
   include:
     - jdk: oraclejdk8
       dist: trusty
-      scala: 2.11.11
+      scala: 2.12.10
     - jdk: oraclejdk8
       dist: trusty
-      scala: 2.12.6
+      scala: 2.13.1
 
 script:
   - sbt clean coverage test
