@@ -12,7 +12,7 @@ crossScalaVersions := Seq("2.12.10", "2.13.1")
 
 organization := "com.samstarling"
 
-val finagleVersion = "20.1.0"
+val finagleVersion = "20.9.0"
 val specs2Version = "4.9.2"
 val prometheusVersion = "0.8.1"
 
