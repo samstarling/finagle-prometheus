@@ -61,6 +61,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
       override def incr(delta: Long): Unit = {
         counter.inc(delta)
       }
+      override def metadata = NoMetadata
     }
   }
 
@@ -76,6 +77,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
       override def add(value: Float): Unit = {
         summary.observe(value)
       }
+      override def metadata = NoMetadata
     }
   }
 
@@ -101,6 +103,7 @@ class PrometheusStatsReceiver(registry: CollectorRegistry,
     new Gauge {
       override def remove(): Unit =
         gaugeProviders.remove((metricName, labelValues))
+      override def metadata = NoMetadata
     }
   }
 
